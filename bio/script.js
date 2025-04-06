@@ -146,60 +146,51 @@ function createLabels() {
     labels.forEach(label => scene.remove(label));
     labels = [];
 
-    const fontLoader = new THREE.FontLoader();
-    // Bir font dosyası yüklemeniz veya CDN kullanmanız gerekebilir.
-    // Şimdilik basit canvas text kullanacağız.
-
     labelData.forEach(data => {
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
-        const fontSize = 20;
+        const fontSize = 20; // Yazı tipi boyutunu buradan da ayarlayabilirsiniz
         context.font = `Bold ${fontSize}px Arial`;
-        const textWidth = context.measureText(data.text).width;
+        const textMetrics = context.measureText(data.text);
+        const textWidth = textMetrics.width;
 
-        canvas.width = textWidth + 10; // Biraz pay
-        canvas.height = fontSize + 10; // Biraz pay
+        // Canvas boyutunu metne göre ayarla (biraz kenar boşluğu bırak)
+        canvas.width = textWidth + 10; // 5px sol, 5px sağ boşluk
+        canvas.height = fontSize + 10; // 5px üst, 5px alt boşluk
 
-        // Arka plan
-        context.fillStyle = "rgba(0, 0, 0, 0.6)"; // Yarı saydam siyah arka plan
+        // Arka plan (isteğe bağlı, okunabilirliği artırır)
+        context.fillStyle = "rgba(0, 0, 0, 0.6)"; // Yarı saydam siyah
         context.fillRect(0, 0, canvas.width, canvas.height);
 
-
-        // Metin
+        // Metin ayarları
         context.font = `Bold ${fontSize}px Arial`;
-        context.fillStyle = "white"; // Beyaz yazı
-        context.textAlign = "center";
-        context.textBaseline = "middle";
-        context.fillText(data.text, canvas.width / 2, canvas.height / 2);
+        context.fillStyle = "white"; // Beyaz yazı rengi
+        context.textAlign = "center"; // Yatayda ortala
+        context.textBaseline = "middle"; // Dikeyde ortala
+        context.fillText(data.text, canvas.width / 2, canvas.height / 2); // Ortaya yazdır
 
         const texture = new THREE.CanvasTexture(canvas);
-        texture.needsUpdate = true;
+        texture.needsUpdate = true; // Dokuyu güncelle
 
         const spriteMaterial = new THREE.SpriteMaterial({
             map: texture,
-            transparent: true,
-            depthTest: false, // Etiketlerin diğer nesnelerin arkasında kalmamasını sağlar (isteğe bağlı)
-            sizeAttenuation: false // Etiket boyutunun mesafeyle değişmemesini sağlar
+            transparent: true, // Arka plan saydamlığı için
+            depthTest: false, // Diğer objelerin arkasında kalsa bile görünsün (isteğe bağlı)
+            sizeAttenuation: false // Etiket boyutunun mesafeyle değişmemesi için
         });
         const sprite = new THREE.Sprite(spriteMaterial);
 
-        // --- DÜZELTME BURADA ---
-        // Sprite boyutunu ayarlamak için daha küçük bir ölçek faktörü kullanın.
-        // Bu değeri (0.008) deneyerek ayarlamanız gerekebilir.
-        // Biraz daha küçültmek için 0.006, büyütmek için 0.01 gibi değerler deneyin.
-        const labelScaleFactor = 0.008;
+        // --- ETİKET BOYUTU AYARI ---
+        // Bu faktörü deneyerek uygun boyutu bulun (örn: 0.005 ile 0.015 arası)
+        const labelScaleFactor = 0.008; // Bu değeri değiştirerek test edin!
         sprite.scale.set(canvas.width * labelScaleFactor, canvas.height * labelScaleFactor, 1);
 
-        // Pozisyonu ayarla (modele göre)
+        // Etiketin pozisyonunu ayarla (verilen pozisyona göre)
         sprite.position.copy(data.position);
 
         sprite.visible = labelsVisible; // Başlangıç görünürlüğü
         scene.add(sprite);
-        labels.push(sprite);
-
-        sprite.visible = labelsVisible; // Başlangıç görünürlüğü
-        scene.add(sprite);
-        labels.push(sprite);
+        labels.push(sprite); // Etiketleri listeye ekle
     });
 }
 
