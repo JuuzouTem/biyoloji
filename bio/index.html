@@ -1,313 +1,353 @@
-// --- Global Three.js Değişkenleri ---
-let scene, camera, renderer, controls;
-let modelContainer; // Modeli içeren div
-let heartModel; // Yüklenen ana 3D model
-let labels = []; // Model üzerindeki etiketler (Sprite'lar)
-let labelsVisible = true; // Etiketlerin görünürlük durumu
-let initialCameraPosition = new THREE.Vector3(0, 1, 7); // Kameranın başlangıç pozisyonu
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dolaşım Sistemi: İnteraktif Öğrenme - Behlül</title>
+    <link rel="stylesheet" href="style.css"> <!-- CSS dosyasını bağlıyoruz -->
+</head>
+<body>
+    <header>
+        <h1>DOLAŞIM SİSTEMİ: YAPI, GÖREV VE İŞLEYİŞ</h1>
+        <p>Behlül'ün İnteraktif Projesi</p>
+    </header>
 
-// --- Diğer Global Değişkenler ---
-let heartbeatAudio;
-const modelPath = 'models/heart_model.glb'; // Model dosyasının yolu
-const audioPath = 'audio/heartbeat.mp3'; // Ses dosyasının yolu
-const loaderOverlay = document.getElementById('loader-overlay'); // Yükleme göstergesi
+    <div class="container">
+        <div class="section">
+            <h2 class="section-title">İnteraktif 3D Kalp Modeli</h2>
+            <div id="model-container">
+                <!-- Three.js modeli buraya yüklenecek -->
+                <div id="loader-overlay">Yükleniyor...</div> <!-- Yüklenme göstergesi -->
+                <div class="model-info">Modeli döndürmek için fareyi sürükleyin. Yakınlaştırmak/uzaklaştırmak için kaydırın (scroll).</div>
+            </div>
+            <div class="controls">
+                <button id="btn-show-all">Tüm Sistemi Göster</button>
+                <button id="btn-isolate-heart">Sadece Kalbi Göster</button>
+                <!-- Daha detaylı kontroller (örn. sadece damarlar) modelin yapısına bağlıdır -->
+                <button id="btn-toggle-labels">Etiketleri Göster/Gizle</button>
+                <button id="btn-play-heartbeat">Kalp Atışını Oynat</button>
+            </div>
+        </div>
 
-// --- Ana Başlatma Fonksiyonu ---
-function init() {
-    modelContainer = document.getElementById('model-container');
-    if (!modelContainer) {
-        console.error("Model container bulunamadı!");
-        return;
-    }
+        <div class="section">
+            <h2 class="section-title">Dolaşım Sistemi Bilgileri</h2>
+            <div class="controls">
+                <button class="tab-btn active" data-tab="tab-gorevler">Temel Görevler</button>
+                <button class="tab-btn" data-tab="tab-bilesenler">Ana Bileşenler</button>
+                <button class="tab-btn" data-tab="tab-kalp-yapi">Kalp Yapısı</button>
+                <button class="tab-btn" data-tab="tab-damarlar">Kan Damarları</button>
+                <button class="tab-btn" data-tab="tab-kan">Kan ve Pıhtılaşma</button>
+                <button class="tab-btn" data-tab="tab-dongu">Kalp Döngüsü & EKG</button>
+                 <button class="tab-btn" data-tab="tab-lenf">Lenf Sistemi</button>
+            </div>
 
-    // 1. Sahne Oluşturma
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf0f4f8);
+            <!-- Tab İçerikleri -->
+            <div id="tab-gorevler" class="tab-content active">
+                <h3>Sistemin Temel Görevleri</h3>
+                <ul>
+                    <li><strong>Taşıma:</strong> O₂, CO₂, Besinler, Hormonlar, Atıklar</li>
+                    <li><strong>Düzenleme:</strong> Vücut Sıcaklığı (Termoregülasyon), pH Dengesi (Tamponlama), Sıvı Dengesi (Ozmotik Basınç)</li>
+                    <li><strong>Koruma:</strong> Pıhtılaşma (Kan kaybını önleme), Bağışıklık (Akyuvarlar, Antikorlar)</li>
+                </ul>
+                <div class="info-card">
+                    Dolaşım sistemi, yaşamsal maddelerin taşınması, vücut dengesinin korunması ve dış etkenlere karşı savunma gibi kritik görevleri üstlenir.
+                </div>
+            </div>
 
-    // 2. Kamera Oluşturma
-    const aspect = modelContainer.clientWidth / modelContainer.clientHeight;
-    camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 1000);
-    camera.position.copy(initialCameraPosition);
-    camera.lookAt(scene.position);
+            <div id="tab-bilesenler" class="tab-content">
+                 <h3>Sistemin Ana Bileşenleri</h3>
+                 <div class="flex-container">
+                    <div class="flex-item">
+                        <h4>Kalp</h4>
+                        <ul>
+                            <li>4 Odacıklı Pompa</li>
+                            <li><strong>Yapısı:</strong>
+                                <ul>
+                                    <li>Perikard (Dış Zar)</li>
+                                    <li>Miyokard (Kas Tabakası)</li>
+                                    <li>Endokard (İç Tabaka)</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="flex-item">
+                        <h4>Kan Damarları</h4>
+                         <ul>
+                            <li><strong>Arterler (Atardamarlar):</strong> Genellikle O₂'li kanı kalpten taşır. Kalın, elastik duvarlı.</li>
+                            <li><strong>Venler (Toplardamarlar):</strong> Genellikle CO₂'li kanı kalbe taşır. Daha ince duvarlı, kapakçık içerir.</li>
+                            <li><strong>Kapiller (Kılcal Damarlar):</strong> Tek katlı epitelden oluşur. Madde alışverişinin yapıldığı yer.</li>
+                        </ul>
+                    </div>
+                     <div class="flex-item">
+                         <h4>Kan</h4>
+                         <ul>
+                            <li><strong>Plazma (%55):</strong> Su, proteinler (albümin, globülin, fibrinojen), iyonlar, besinler, hormonlar, atıklar.</li>
+                            <li><strong>Kan Hücreleri (%45):</strong>
+                                <ul>
+                                    <li>Eritrosit (Alyuvar): O₂/CO₂ taşıma (Hemoglobin)</li>
+                                    <li>Lökosit (Akyuvar): Bağışıklık</li>
+                                    <li>Trombosit (Kan Pulcuğu): Pıhtılaşma</li>
+                                </ul>
+                            </li>
+                         </ul>
+                     </div>
+                 </div>
+            </div>
 
-    // 3. Renderer Oluşturma
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(modelContainer.clientWidth, modelContainer.clientHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    modelContainer.appendChild(renderer.domElement);
+            <div id="tab-kalp-yapi" class="tab-content">
+                <h3>Kalp Yapısı Detayları</h3>
+                 <div class="flex-container">
+                     <div class="flex-item">
+                        <h4>Kalp Odacıkları</h4>
+                        <ul>
+                            <li><strong>Sağ Atriyum (Kulakçık):</strong> Vücuttan gelen kirli kanı alır (Vena Cava).</li>
+                            <li><strong>Sağ Ventrikül (Karıncık):</strong> Kanı akciğerlere pompalar (Pulmoner Arter).</li>
+                            <li><strong>Sol Atriyum (Kulakçık):</strong> Akciğerlerden gelen temiz kanı alır (Pulmoner Venler).</li>
+                            <li><strong>Sol Ventrikül (Karıncık):</strong> Kanı tüm vücuda pompalar (Aort) - En kalın duvarlı odacık.</li>
+                        </ul>
+                     </div>
+                     <div class="flex-item">
+                         <h4>Kalp Kapakçıkları (Tek yönlü akışı sağlar)</h4>
+                        <ul>
+                            <li><strong>Triküspit Kapak:</strong> Sağ Atriyum ↔ Sağ Ventrikül</li>
+                            <li><strong>Pulmoner Kapak:</strong> Sağ Ventrikül ↔ Pulmoner Arter</li>
+                            <li><strong>Biküspit (Mitral) Kapak:</strong> Sol Atriyum ↔ Sol Ventrikül</li>
+                            <li><strong>Aort Kapağı:</strong> Sol Ventrikül ↔ Aort</li>
+                        </ul>
+                     </div>
+                 </div>
+            </div>
 
-    // 4. Kontrolleri Ekleme (OrbitControls)
-    controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.08;
-    controls.screenSpacePanning = false;
-    controls.minDistance = 2;
-    controls.maxDistance = 25;
-    controls.target.set(0, 0, 0);
+            <div id="tab-damarlar" class="tab-content">
+                 <h3>Kan Damarları ve Özellikleri</h3>
+                 <table>
+                    <thead>
+                        <tr>
+                            <th>Damar Tipi</th>
+                            <th>Duvar Yapısı</th>
+                            <th>Kan Basıncı</th>
+                            <th>Akış Hızı</th>
+                            <th>Özellikler / Görev</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Arterler</strong></td>
+                            <td>Kalın, Elastik Lifli, Düz Kaslı</td>
+                            <td>Yüksek</td>
+                            <td>Hızlı</td>
+                            <td>Kanı kalpten taşır. Aort en büyük arterdir.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Venler</strong></td>
+                            <td>Arterlerden ince, daha az elastik, düz kaslı</td>
+                            <td>Düşük</td>
+                            <td>Arterlerden yavaş</td>
+                            <td>Kanı kalbe taşır. Genellikle kapakçık içerir (yerçekimine karşı).</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Kapillerler</strong></td>
+                            <td>Tek katlı yassı epitel (Endotel)</td>
+                            <td>Orta → Düşük</td>
+                            <td>Çok Yavaş</td>
+                            <td>Madde alışverişi (difüzyon, ozmoz, filtrasyon). Toplam yüzey alanı en fazla.</td>
+                        </tr>
+                    </tbody>
+                 </table>
+                 <h4>Kapiller Madde Alışverişi (Starling Hipotezi)</h4>
+                 <p>Kan basıncı ve ozmotik basınç farkına dayanır:</p>
+                 <ul>
+                     <li><strong>Arter Ucu:</strong> Kan Basıncı > Ozmotik Basınç → Sıvı ve küçük moleküller dokuya sızar (Filtrasyon).</li>
+                     <li><strong>Ven Ucu:</strong> Ozmotik Basınç > Kan Basıncı → Sıvı ve atıklar dokudan kana geri emilir (Geri Emilim).</li>
+                 </ul>
+            </div>
 
-    // 5. Işıkları Ekleme (Geliştirilmiş)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.0); // Ortam ışığı yoğunluğu artırıldı
-    scene.add(ambientLight);
+             <div id="tab-kan" class="tab-content">
+                 <h3>Kan ve Pıhtılaşma</h3>
+                 <div class="flex-container">
+                    <div class="flex-item">
+                        <h4>Kan Grupları</h4>
+                        <ul>
+                            <li><strong>ABO Sistemi:</strong>
+                                <ul>
+                                    <li>Antijenler: A, B (Alyuvar zarında)</li>
+                                    <li>Antikorlar: Anti-A, Anti-B (Plazmada)</li>
+                                </ul>
+                            </li>
+                             <li><strong>Rh Sistemi:</strong>
+                                <ul>
+                                    <li>Antijen: Rh(D) (Alyuvar zarında)</li>
+                                    <li>Antikor: Anti-D (Rh(-) bireyde Rh(+) kanla karşılaşınca oluşur)</li>
+                                </ul>
+                            </li>
+                            <li><strong>Kan Uyuşmazlığı (Eritroblastosis Fetalis):</strong> Rh(-) anne, Rh(+) fetus. İlk gebelikte genelde sorun olmaz, ancak doğumda annenin kanına fetal Rh(+) hücreler karışırsa, anne Anti-D üretir. Sonraki Rh(+) gebeliklerde annenin Anti-D antikorları plasentadan fetüse geçerek alyuvarlarını parçalayabilir.</li>
+                        </ul>
+                    </div>
+                    <div class="flex-item">
+                        <h4>Kanın Pıhtılaşması (Hemostaz)</h4>
+                        <ol>
+                            <li><strong>Damar Büzülmesi (Vazokonstriksiyon):</strong> Yaralanan damar daralır.</li>
+                            <li><strong>Trombosit Tıkacı Oluşumu:</strong> Trombositler hasarlı bölgeye yapışır ve kümelenir.</li>
+                            <li><strong>Pıhtılaşma (Koagülasyon):</strong> Karmaşık bir reaksiyon zinciri (pıhtılaşma faktörleri, K vitamini, Ca<sup>++</sup> gereklidir):
+                                <ul>
+                                    <li>Protrombin → (Tromboplastin + Ca<sup>++</sup>) → Trombin</li>
+                                    <li>Fibrinojen → (Trombin) → Fibrin (Ağsı yapı, kan hücrelerini hapseder)</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+                 </div>
+            </div>
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5); // Ana ışık yoğunluğu artırıldı ve konumu ayarlandı
-    directionalLight.position.set(5, 8, 10);
-    directionalLight.target.position.set(0, 0, 0);
-    scene.add(directionalLight);
-    scene.add(directionalLight.target);
+            <div id="tab-dongu" class="tab-content">
+                <h3>Kalp Döngüsü, Sesler ve EKG</h3>
+                <div class="flex-container">
+                    <div class="flex-item">
+                         <h4>Kalp Döngüsü (Bir kalp atımı ≈ 0.85 sn)</h4>
+                         <ul>
+                            <li><strong>Sistol (Kasılma):</strong>
+                                <ul>
+                                    <li>Kulakçık Sistolü (≈ 0.15 sn): Kulakçıklar kasılır, kan karıncıklara dolar.</li>
+                                    <li>Karıncık Sistolü (≈ 0.30 sn): Karıncıklar kasılır, kan arterlere pompalanır (AV kapaklar kapanır - S1 sesi, Semilunar kapaklar açılır).</li>
+                                </ul>
+                             </li>
+                             <li><strong>Diyastol (Gevşeme) (≈ 0.40 sn):</strong>
+                                <ul>
+                                    <li>Kulakçık ve Karıncıklar aynı anda gevşer. Semilunar kapaklar kapanır (S2 sesi), AV kapaklar açılır, kalp tekrar kanla dolar.</li>
+                                </ul>
+                             </li>
+                         </ul>
+                         <h4>Kalp Sesleri</h4>
+                         <ul>
+                             <li><strong>S1 (Lubb):</strong> AV kapakçıkların (Triküspit ve Mitral) kapanmasıyla oluşur. Karıncık sistolünün başlangıcı.</li>
+                             <li><strong>S2 (Dubb):</strong> Semilunar kapakçıkların (Aort ve Pulmoner) kapanmasıyla oluşur. Karıncık diyastolünün başlangıcı.</li>
+                         </ul>
+                    </div>
+                    <div class="flex-item">
+                        <h4>Kalbin Elektriksel Uyarımı ve İleti Yolu</h4>
+                        <ol>
+                            <li><strong>Sinoatriyal (SA) Düğüm (Pacemaker):</strong> Sağ kulakçık duvarında. Uyarıyı başlatır.</li>
+                            <li><strong>Atriyoventriküler (AV) Düğüm:</strong> Kulakçıklar ve karıncıklar arasında. Uyarıyı kısa süre bekletir.</li>
+                            <li><strong>His Demetleri:</strong> Uyarıyı karıncık duvarlarına taşır.</li>
+                            <li><strong>Purkinje Lifleri:</strong> Uyarıyı karıncık kas hücrelerine yayar ve kasılmayı sağlar.</li>
+                        </ol>
+                         <h4>EKG (Elektrokardiyogram)</h4>
+                         <p>Kalbin elektriksel aktivitesinin kaydedilmesi.</p>
+                         <ul>
+                             <li><strong>P Dalgası:</strong> Kulakçıkların depolarizasyonu (kasılması).</li>
+                             <li><strong>QRS Kompleksi:</strong> Karıncıkların depolarizasyonu (kasılması) ve kulakçıkların repolarizasyonu (gevşemesi - QRS içinde maskelenir).</li>
+                             <li><strong>T Dalgası:</strong> Karıncıkların repolarizasyonu (gevşemesi).</li>
+                         </ul>
+                         <h4>Kan Basıncı (Tansiyon)</h4>
+                         <ul>
+                             <li><strong>Sistolik Basınç (Büyük Tansiyon):</strong> Karıncıklar kasıldığında arterlerdeki maksimum basınç (Normal ≈ 120 mmHg).</li>
+                             <li><strong>Diyastolik Basınç (Küçük Tansiyon):</strong> Karıncıklar gevşediğinde arterlerdeki minimum basınç (Normal ≈ 80 mmHg).</li>
+                         </ul>
+                    </div>
+                </div>
+            </div>
 
-    // İsteğe Bağlı: İkinci dolgu ışığı
-    const directionalLight2 = new THREE.DirectionalLight(0xaaaaaa, 0.8);
-    directionalLight2.position.set(-5, -3, -5);
-    directionalLight2.target.position.set(0, 0, 0);
-    scene.add(directionalLight2);
-    scene.add(directionalLight2.target);
+             <div id="tab-lenf" class="tab-content">
+                 <h3>Lenf Sistemi</h3>
+                 <ul>
+                     <li>Kan damarlarına sızan ve geri emilemeyen doku sıvısını (lenf) toplayarak tekrar kan dolaşımına katmak.</li>
+                     <li>İnce bağırsaklardan emilen yağ asitleri ve gliserolün (şilomikronlar halinde) kan dolaşımına taşınmasını sağlamak.</li>
+                     <li>Vücut savunmasında (bağışıklık) görev almak. Lenf düğümlerinde bulunan lenfositler (B ve T) ve makrofajlar mikroplarla savaşır.</li>
+                 </ul>
+                 <h4>Lenf Sisteminin Elemanları:</h4>
+                 <ul>
+                     <li><strong>Lenf Kılcalları:</strong> Tek katlı endotelden oluşur, bir ucu kapalıdır. Doku sıvısını toplar.</li>
+                     <li><strong>Lenf Toplardamarları:</strong> Lenfi taşır, yapısı venlere benzer (kapakçık içerir).</li>
+                     <li><strong>Lenf Düğümleri:</strong> Lenf damarları üzerinde bulunan, bağışıklık hücrelerini barındıran küçük, fasulye şeklinde yapılar (örn. koltuk altı, kasık, boyun).</li>
+                     <li><strong>Ana Lenf Damarları:</strong>
+                         <ul>
+                             <li>Peke Sarnıcı ve Göğüs Kanalı: Vücudun büyük kısmından (bacaklar, karın, sol kol, başın solu) lenfi toplar ve sol köprücük altı toplardamarına bağlar.</li>
+                             <li>Sağ Lenfatik Kanal: Başın ve göğsün sağ üst kısmı ile sağ koldan lenfi toplar ve sağ köprücük altı toplardamarına bağlar.</li>
+                         </ul>
+                     </li>
+                     <li><strong>Diğer Lenfoid Organlar:</strong> Dalak, Timüs, Bademcikler, Kırmızı Kemik İliği.</li>
+                 </ul>
+                 <div class="info-card">
+                     Lenf sıvısının hareketi kan gibi bir pompa (kalp) tarafından sağlanmaz. İskelet kaslarının kasılması, damar duvarındaki düz kaslar, solunum hareketleri ve damarlardaki tek yönlü kapakçıklar lenfin hareketini sağlar. Bu yüzden lenf akışı kana göre daha yavaştır.
+                 </div>
+             </div>
+            <!-- Diğer tab içerikleri buraya eklenecek -->
 
-    // 6. Modeli Yükleme
-    loadGLBModel(modelPath);
+        </div>
 
-    // 7. UI Olaylarını Ayarlama
-    setupUIEventListeners();
+        <div class="section">
+            <h2 class="section-title">AYT Tipi Sorular</h2>
+            <!-- Örnek Soru 1 -->
+            <div class="ayt-question">
+                <div class="question">1. Sağlıklı bir insanda, kalbin sağ karıncığından pompalanan kan, aşağıdaki yapıların hangisinden geçtikten sonra sol kulakçığa ulaşır?</div>
+                <div class="options">
+                    A) Aort<br>
+                    B) Akciğer atardamarı (Pulmoner Arter)<br>
+                    C) Karaciğer atardamarı<br>
+                    D) Böbrek toplardamarı<br>
+                    E) Üst ana toplardamar (Vena Cava Superior)
+                </div>
+                <button class="answer-btn" onclick="toggleAnswer(this)">Cevabı Göster</button>
+                <div class="answer">
+                    <strong>Doğru Cevap: B</strong><br>
+                    Sağ karıncıktan çıkan kan, akciğer atardamarı ile akciğerlere gider (küçük dolaşım). Akciğerlerde temizlendikten sonra akciğer toplardamarları (Pulmoner Venler) ile sol kulakçığa döner. Soruda "geçtikten sonra" ifadesi akciğerlere giden damarı işaret etmektedir.
+                </div>
+            </div>
 
-    // 8. Ses Dosyasını Yükleme (Loop aktif)
-    loadAudio(audioPath);
+             <!-- Örnek Soru 2 -->
+             <div class="ayt-question">
+                 <div class="question">2. İnsan kan plazmasında aşağıdakilerden hangisi bulunmaz?</div>
+                 <div class="options">
+                     A) Albümin<br>
+                     B) Fibrinojen<br>
+                     C) Hemoglobin<br>
+                     D) Antikorlar (Globülinler)<br>
+                     E) Su
+                 </div>
+                 <button class="answer-btn" onclick="toggleAnswer(this)">Cevabı Göster</button>
+                 <div class="answer">
+                     <strong>Doğru Cevap: C</strong><br>
+                     Hemoglobin, alyuvarların (eritrositler) içinde bulunan ve oksijen taşıyan proteindir. Kan plazmasında serbest halde bulunmaz. Diğer seçenekler plazmanın bileşenleridir.
+                 </div>
+             </div>
 
-    // 9. Pencere Boyutlandırma Olayı
-    window.addEventListener('resize', onWindowResize, false);
+             <!-- Örnek Soru 3 -->
+             <div class="ayt-question">
+                 <div class="question">3. Kalbin çalışmasını düzenleyen elektriksel uyarılar hangi sırayla ilerler?</div>
+                 <div class="options">
+                     A) AV düğümü → SA düğümü → His Demetleri → Purkinje Lifleri<br>
+                     B) SA düğümü → AV düğümü → His Demetleri → Purkinje Lifleri<br>
+                     C) His Demetleri → Purkinje Lifleri → SA düğümü → AV düğümü<br>
+                     D) SA düğümü → His Demetleri → AV düğümü → Purkinje Lifleri<br>
+                     E) AV düğümü → His Demetleri → Purkinje Lifleri → SA düğümü
+                 </div>
+                 <button class="answer-btn" onclick="toggleAnswer(this)">Cevabı Göster</button>
+                 <div class="answer">
+                     <strong>Doğru Cevap: B</strong><br>
+                     Kalp uyarıları SA düğümünde başlar, AV düğümüne iletilir, oradan His Demetleri ve Purkinje Lifleri aracılığıyla karıncıklara yayılır.
+                 </div>
+             </div>
+            <!-- Buraya 25'e kadar soru eklenebilir -->
+            <p><i>(Buraya toplam 25 soru eklenecektir...)</i></p>
+        </div>
+    </div>
 
-    // 10. Animasyon Döngüsünü Başlatma
-    animate();
-}
+    <footer>
+        <p>Bu interaktif proje Behlül tarafından 11. Sınıf Biyoloji dersi için hazırlanmıştır.</p>
+        <!-- İsteğe bağlı QR kod -->
+    </footer>
 
-// --- Model Yükleme Fonksiyonu ---
-function loadGLBModel(path) {
-    const loader = new THREE.GLTFLoader();
-    if (loaderOverlay) loaderOverlay.style.display = 'flex';
+    <!-- Three.js Kütüphaneleri (CDN) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- OrbitControls: Modeli fare ile döndürme/yakınlaştırma -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- GLTFLoader: .glb veya .gltf formatındaki modelleri yükleme -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+     <!-- FontLoader ve TextGeometry (Etiketler için alternatif) -->
+     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
 
-    loader.load(
-        path,
-        // Başarıyla yüklendiğinde
-        function (gltf) {
-            heartModel = gltf.scene;
 
-            const box = new THREE.Box3().setFromObject(heartModel);
-            const center = box.getCenter(new THREE.Vector3());
-            const size = box.getSize(new THREE.Vector3());
-
-            heartModel.position.sub(center);
-            const maxDim = Math.max(size.x, size.y, size.z);
-            const scale = 4 / maxDim;
-            heartModel.scale.set(scale, scale, scale);
-
-            scene.add(heartModel);
-            createLabels(); // Etiketleri model yüklendikten sonra oluştur
-            if (loaderOverlay) loaderOverlay.style.display = 'none';
-        },
-        // Yükleme ilerlemesi (Geliştirilmiş - Infinity% sorunu düzeltildi)
-        function (xhr) {
-            if (loaderOverlay) {
-                if (xhr.lengthComputable && xhr.total > 0) {
-                    const percentLoaded = (xhr.loaded / xhr.total * 100).toFixed(0);
-                    loaderOverlay.textContent = `Yükleniyor... ${percentLoaded}%`;
-                } else {
-                    const loadedMB = (xhr.loaded / 1024 / 1024).toFixed(2);
-                    loaderOverlay.textContent = `Yükleniyor... (${loadedMB} MB)`;
-                    // Veya: loaderOverlay.textContent = `Yükleniyor...`;
-                }
-            }
-        },
-        // Hata durumunda
-        function (error) {
-            console.error('Model yüklenirken hata oluştu:', error);
-             if (loaderOverlay) {
-                loaderOverlay.textContent = 'Model Yüklenemedi!';
-                loaderOverlay.style.color = 'red';
-             }
-        }
-    );
-}
-
-// --- Etiket Oluşturma Fonksiyonu (Sprite ve Sabit Ölçek Kullanarak) ---
-function createLabels() {
-    // !!! ÖNEMLİ: BU POZİSYONLARI KENDİ MODELİNİZE GÖRE AYARLAMALISINIZ !!!
-    // Aşağıdaki değerler sadece başlangıç noktasıdır ve deneme yanılma gerektirir.
-    const labelData = [
-        // Üst Kısım
-        { text: "Aort",           position: new THREE.Vector3( 0.0,  3.5, -0.5) }, // Önerilen yeni pozisyon
-        { text: "Pulmoner Arter", position: new THREE.Vector3( 1.0,  3.0, -0.2) }, // Önerilen yeni pozisyon
-        { text: "Vena Cava",      position: new THREE.Vector3( 1.5,  2.8,  0.2) }, // Önerilen yeni pozisyon
-
-        // Orta Kısım (Kulakçıklar)
-        { text: "Sağ Atriyum",    position: new THREE.Vector3( 1.8,  1.0,  0.5) }, // Önerilen yeni pozisyon
-        { text: "Sol Atriyum",    position: new THREE.Vector3(-1.8,  1.0,  0.3) }, // Önerilen yeni pozisyon
-
-        // Alt Kısım (Karıncıklar)
-        { text: "Sağ Ventrikül",  position: new THREE.Vector3( 1.5, -1.5,  1.0) }, // Önerilen yeni pozisyon
-        { text: "Sol Ventrikül",  position: new THREE.Vector3(-1.5, -1.5,  1.0) }  // Önerilen yeni pozisyon
-    ];
-
-    // Önceki etiketleri temizle
-    labels.forEach(label => scene.remove(label));
-    labels = [];
-
-    labelData.forEach(data => {
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        const fontSize = 20;
-        context.font = `Bold ${fontSize}px Arial`;
-        const textMetrics = context.measureText(data.text);
-        const textWidth = textMetrics.width;
-
-        canvas.width = textWidth + 10;
-        canvas.height = fontSize + 10;
-
-        context.fillStyle = "rgba(0, 0, 0, 0.6)";
-        context.fillRect(0, 0, canvas.width, canvas.height);
-        context.font = `Bold ${fontSize}px Arial`;
-        context.fillStyle = "white";
-        context.textAlign = "center";
-        context.textBaseline = "middle";
-        context.fillText(data.text, canvas.width / 2, canvas.height / 2);
-
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.needsUpdate = true;
-
-        const spriteMaterial = new THREE.SpriteMaterial({
-            map: texture,
-            transparent: true,
-            depthTest: false,
-            sizeAttenuation: false
-        });
-        const sprite = new THREE.Sprite(spriteMaterial);
-
-        // --- SABİT ÖLÇEKLEME ---
-        // BU DEĞERLERİ (0.1, 0.05) DENEYEREK ETİKET BOYUTUNU AYARLAYIN.
-        sprite.scale.set(0.1, 0.05, 1); // Önceki adımdaki en iyi değeri buraya yazın veya ayarlayın
-
-        sprite.position.copy(data.position); // Güncellenmiş veya sizin ayarladığınız pozisyonu kullan
-        sprite.visible = labelsVisible;
-        scene.add(sprite);
-        labels.push(sprite);
-    });
-}
-
-// --- Animasyon Döngüsü ---
-function animate() {
-    requestAnimationFrame(animate);
-    controls.update();
-    renderer.render(scene, camera);
-}
-
-// --- Pencere Boyutlandırma İşleyici ---
-function onWindowResize() {
-    if (!modelContainer) return;
-    const width = modelContainer.clientWidth;
-    const height = modelContainer.clientHeight;
-
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
-    renderer.setSize(width, height);
-}
-
-// --- UI Olay Dinleyicileri ---
-function setupUIEventListeners() {
-    // Tab Değiştirme
-    document.querySelectorAll('.tab-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            const tabId = button.getAttribute('data-tab');
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            button.classList.add('active');
-            const targetTab = document.getElementById(tabId);
-            if (targetTab) targetTab.classList.add('active');
-        });
-    });
-
-    // Cevap Gösterme/Gizleme
-    window.toggleAnswer = function(button) {
-        const answer = button.nextElementSibling;
-        if (!answer) return;
-        if (answer.style.display === 'block') {
-            answer.style.display = 'none';
-            button.textContent = 'Cevabı Göster';
-        } else {
-            answer.style.display = 'block';
-            button.textContent = 'Cevabı Gizle';
-        }
-    }
-
-    // Model Kontrol Butonları
-    document.getElementById('btn-show-all')?.addEventListener('click', () => {
-        if (heartModel) heartModel.visible = true;
-        // İleride model parçalarını kontrol etmek için traverse kullanılabilir
-    });
-    document.getElementById('btn-isolate-heart')?.addEventListener('click', () => {
-        if (heartModel) heartModel.visible = true;
-        // İleride model parçalarını kontrol etmek için traverse kullanılabilir
-    });
-    document.getElementById('btn-toggle-labels')?.addEventListener('click', toggleLabels);
-    document.getElementById('btn-play-heartbeat')?.addEventListener('click', playHeartbeat);
-}
-
-// --- Etiket Görünürlüğünü Değiştirme ---
-function toggleLabels() {
-    labelsVisible = !labelsVisible;
-    labels.forEach(label => {
-        label.visible = labelsVisible;
-    });
-    const button = document.getElementById('btn-toggle-labels');
-    if (button) button.textContent = labelsVisible ? 'Etiketleri Gizle' : 'Etiketleri Göster';
-}
-
-// --- Ses Yükleme (Loop aktif) ---
-function loadAudio(path) {
-    const audioButton = document.getElementById('btn-play-heartbeat');
-    try {
-        heartbeatAudio = new Audio(path);
-        heartbeatAudio.loop = true; // Sesin tekrar etmesi için
-        heartbeatAudio.preload = 'auto';
-
-        const onCanPlay = () => {
-             console.log("Ses dosyası çalmaya hazır.");
-             if (audioButton) audioButton.disabled = false;
-             heartbeatAudio.removeEventListener('canplaythrough', onCanPlay);
-        };
-        const onError = (e) => {
-            console.error("Ses dosyası yüklenemedi veya hata oluştu:", e);
-            if (audioButton) {
-                audioButton.disabled = true;
-                audioButton.textContent = 'Ses Hatası';
-            }
-        };
-
-        heartbeatAudio.addEventListener('canplaythrough', onCanPlay, false);
-        heartbeatAudio.addEventListener('error', onError, false);
-        if (audioButton) audioButton.disabled = true; // Başlangıçta devre dışı
-
-    } catch (e) {
-        console.error("Audio nesnesi oluşturulamadı:", e);
-         if (audioButton) {
-             audioButton.disabled = true;
-             audioButton.textContent = 'Ses Hatası';
-         }
-    }
-}
-
-// --- Kalp Atışı Sesini Oynatma/Durdurma ---
-function playHeartbeat() {
-    if (heartbeatAudio && heartbeatAudio.readyState >= 2) {
-        if (heartbeatAudio.paused) {
-            heartbeatAudio.play().catch(e => console.error("Ses çalma hatası:", e));
-        } else {
-            heartbeatAudio.pause();
-        }
-    } else {
-        console.warn("Ses dosyası henüz hazır değil veya yüklenemedi.");
-    }
-}
-
-// --- Başlatma ---
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-} else {
-    init();
-}
+    <script src="script.js"></script> <!-- JavaScript dosyamızı bağlıyoruz -->
+</body>
+</html>
