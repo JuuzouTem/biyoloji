@@ -52,9 +52,6 @@ function init() {
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9); // Yönlü ışık (güneş gibi)
     directionalLight.position.set(5, 10, 7); // Işığın konumu
     scene.add(directionalLight);
-    // İsteğe bağlı: Gölge ekleme
-    // directionalLight.castShadow = true;
-    // renderer.shadowMap.enabled = true;
 
     // 6. Modeli Yükleme
     loadGLBModel(modelPath);
@@ -62,7 +59,7 @@ function init() {
     // 7. UI Olaylarını Ayarlama
     setupUIEventListeners();
 
-    // 8. Ses Dosyasını Yükleme
+    // 8. Ses Dosyasını Yükleme (Loop aktif)
     loadAudio(audioPath);
 
     // 9. Pencere Boyutlandırma Olayı
@@ -75,7 +72,7 @@ function init() {
 // --- Model Yükleme Fonksiyonu ---
 function loadGLBModel(path) {
     const loader = new THREE.GLTFLoader();
-    loaderOverlay.style.display = 'flex'; // Yükleme göstergesini göster
+    if (loaderOverlay) loaderOverlay.style.display = 'flex'; // Yükleme göstergesini göster
 
     loader.load(
         path,
@@ -96,37 +93,29 @@ function loadGLBModel(path) {
 
             scene.add(heartModel);
 
-             // İsteğe Bağlı: Modeldeki parçaları gez (daha sonra kontrol için)
-            /*
-            heartModel.traverse((child) => {
-                if (child.isMesh) {
-                    console.log("Model Parçası:", child.name); // Parça isimlerini gör
-                    // child.castShadow = true;
-                    // child.receiveShadow = true;
-                }
-            });
-            */
-
             // Model yüklendikten sonra etiketleri oluştur
             createLabels();
-            loaderOverlay.style.display = 'none'; // Yükleme göstergesini gizle
+            if (loaderOverlay) loaderOverlay.style.display = 'none'; // Yükleme göstergesini gizle
         },
         // Yükleme ilerlemesi (isteğe bağlı)
         function (xhr) {
-            const percentLoaded = (xhr.loaded / xhr.total * 100).toFixed(0);
-            loaderOverlay.textContent = `Yükleniyor... ${percentLoaded}%`;
-            // console.log((xhr.loaded / xhr.total * 100) + '% yüklendi');
+            if (loaderOverlay) {
+                const percentLoaded = (xhr.loaded / xhr.total * 100).toFixed(0);
+                loaderOverlay.textContent = `Yükleniyor... ${percentLoaded}%`;
+            }
         },
         // Hata durumunda
         function (error) {
             console.error('Model yüklenirken hata oluştu:', error);
-             loaderOverlay.textContent = 'Model Yüklenemedi!';
-             loaderOverlay.style.color = 'red';
+             if (loaderOverlay) {
+                loaderOverlay.textContent = 'Model Yüklenemedi!';
+                loaderOverlay.style.color = 'red';
+             }
         }
     );
 }
 
-// --- Etiket Oluşturma Fonksiyonu (Sprite Kullanarak) ---
+// --- Etiket Oluşturma Fonksiyonu (Sprite ve Sabit Ölçek Kullanarak) ---
 function createLabels() {
     // ÖNEMLİ: Bu pozisyonlar sizin kullandığınız `heart_model.glb` modeline
     // göre ayarlanmalıdır. Modeldeki belirli parçaların pozisyonlarını
@@ -139,7 +128,7 @@ function createLabels() {
         { text: "Sol Atriyum", position: new THREE.Vector3(-1, 1, 0) },
         { text: "Sağ Atriyum", position: new THREE.Vector3(1, 1, 0) },
         { text: "Vena Cava", position: new THREE.Vector3(1.2, 2.0, 0.2) }
-        // ... diğer etiketler
+        // ... diğer etiketler eklenebilir
     ];
 
     // Önceki etiketleri temizle (varsa)
@@ -149,43 +138,44 @@ function createLabels() {
     labelData.forEach(data => {
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
-        const fontSize = 20; // Yazı tipi boyutunu buradan da ayarlayabilirsiniz
+        const fontSize = 20; // Yazı tipi boyutu
         context.font = `Bold ${fontSize}px Arial`;
         const textMetrics = context.measureText(data.text);
         const textWidth = textMetrics.width;
 
-        // Canvas boyutunu metne göre ayarla (biraz kenar boşluğu bırak)
-        canvas.width = textWidth + 10; // 5px sol, 5px sağ boşluk
-        canvas.height = fontSize + 10; // 5px üst, 5px alt boşluk
+        // Canvas boyutunu metne göre ayarla (kenar boşluklu)
+        canvas.width = textWidth + 10;
+        canvas.height = fontSize + 10;
 
-        // Arka plan (isteğe bağlı, okunabilirliği artırır)
-        context.fillStyle = "rgba(0, 0, 0, 0.6)"; // Yarı saydam siyah
+        // Arka plan
+        context.fillStyle = "rgba(0, 0, 0, 0.6)";
         context.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Metin ayarları
+        // Metin
         context.font = `Bold ${fontSize}px Arial`;
-        context.fillStyle = "white"; // Beyaz yazı rengi
-        context.textAlign = "center"; // Yatayda ortala
-        context.textBaseline = "middle"; // Dikeyde ortala
-        context.fillText(data.text, canvas.width / 2, canvas.height / 2); // Ortaya yazdır
+        context.fillStyle = "white";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        context.fillText(data.text, canvas.width / 2, canvas.height / 2);
 
         const texture = new THREE.CanvasTexture(canvas);
-        texture.needsUpdate = true; // Dokuyu güncelle
+        texture.needsUpdate = true;
 
         const spriteMaterial = new THREE.SpriteMaterial({
             map: texture,
-            transparent: true, // Arka plan saydamlığı için
-            depthTest: false, // Diğer objelerin arkasında kalsa bile görünsün (isteğe bağlı)
-            sizeAttenuation: false // Etiket boyutunun mesafeyle değişmemesi için
+            transparent: true,
+            depthTest: false, // Etiketler modelin arkasında kalsa bile görünsün
+            sizeAttenuation: false // Boyut mesafeyle değişmesin
         });
         const sprite = new THREE.Sprite(spriteMaterial);
 
-        // --- ETİKET BOYUTU AYARI ---
-        // Bu faktörü deneyerek uygun boyutu bulun (örn: 0.005 ile 0.015 arası)
-        const labelScaleFactor = 0.008; // Bu değeri değiştirerek test edin!
-        sprite.scale.set(canvas.width * labelScaleFactor, canvas.height * labelScaleFactor, 1);
+        // --- SABİT ÖLÇEKLEME ---
+        // Bu değerleri (0.1, 0.05) deneyerek etiket boyutunu ayarlayın.
+        // Daha küçük yapmak için: 0.05, 0.025 gibi
+        // Biraz daha büyük yapmak için: 0.15, 0.075 gibi değerler deneyin.
+        sprite.scale.set(0.1, 0.05, 1); // SABİT DEĞERLERİ AYARLAYIN
 
-        // Etiketin pozisyonunu ayarla (verilen pozisyona göre)
+        // Etiketin pozisyonunu ayarla
         sprite.position.copy(data.position);
 
         sprite.visible = labelsVisible; // Başlangıç görünürlüğü
@@ -200,9 +190,6 @@ function animate() {
     requestAnimationFrame(animate); // Tarayıcıdan bir sonraki frame'i iste
 
     controls.update(); // Damping etkinse kontrolleri güncelle
-
-    // Etiketlerin kameraya bakmasını sağla (Sprite'lar zaten yapar ama 3D Text için gerekebilir)
-    // labels.forEach(label => label.lookAt(camera.position));
 
     renderer.render(scene, camera); // Sahneyi render et
 }
@@ -230,7 +217,8 @@ function setupUIEventListeners() {
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             // Seçileni aktif yap
             button.classList.add('active');
-            document.getElementById(tabId).classList.add('active');
+            const targetTab = document.getElementById(tabId);
+            if (targetTab) targetTab.classList.add('active');
         });
     });
 
@@ -238,6 +226,7 @@ function setupUIEventListeners() {
     // Global fonksiyona erişim için window'a ekleyelim (HTML'deki onclick'ler için)
     window.toggleAnswer = function(button) {
         const answer = button.nextElementSibling;
+        if (!answer) return; // Güvenlik kontrolü
         if (answer.style.display === 'block') {
             answer.style.display = 'none';
             button.textContent = 'Cevabı Göster';
@@ -250,20 +239,21 @@ function setupUIEventListeners() {
     // --- Model Kontrol Butonları ---
     document.getElementById('btn-show-all')?.addEventListener('click', () => {
         if (heartModel) heartModel.visible = true;
-        // Eğer modelde ayrı parçalar varsa, burada hepsini görünür yap
+        // İleride: Eğer modelde ayrı parçalar varsa, burada hepsini görünür yapabilirsiniz.
     });
 
     document.getElementById('btn-isolate-heart')?.addEventListener('click', () => {
         if (heartModel) {
             heartModel.visible = true; // Ana modeli göster
-            // Eğer modelde damarlar ayrıysa, onları burada gizle:
-            // heartModel.traverse((child) => {
-            //     if (child.name.includes("Vessel") || child.name.includes("Artery")) {
-            //         child.visible = false;
-            //     } else {
-            //          child.visible = true;
-            //      }
-            // });
+             // İleride: Model parçalarına göre damarları vs. gizleyebilirsiniz.
+             // Örneğin:
+             // heartModel.traverse((child) => {
+             //    if (child.isMesh && child.name.toLowerCase().includes('artery')) {
+             //       child.visible = false;
+             //    } else if (child.isMesh) {
+             //       child.visible = true;
+             //    }
+             // });
         }
     });
 
@@ -281,51 +271,66 @@ function toggleLabels() {
     if (button) button.textContent = labelsVisible ? 'Etiketleri Gizle' : 'Etiketleri Göster';
 }
 
-// --- Ses Yükleme ---
+// --- Ses Yükleme (Loop aktif) ---
 function loadAudio(path) {
+    const audioButton = document.getElementById('btn-play-heartbeat');
     try {
         heartbeatAudio = new Audio(path);
-        heartbeatAudio.loop = true; // Tekrar etsin
-        heartbeatAudio.preload = 'auto'; // Tarayıcı uygun gördüğünde yüklesin
+        heartbeatAudio.loop = true; // <<< SESİN TEKRAR ETMESİ İÇİN true
+        heartbeatAudio.preload = 'auto';
 
-        // Sesin çalmaya hazır olup olmadığını kontrol etmek için (isteğe bağlı)
-        heartbeatAudio.addEventListener('canplaythrough', () => {
+        const onCanPlay = () => {
              console.log("Ses dosyası çalmaya hazır.");
-             document.getElementById('btn-play-heartbeat').disabled = false; // Butonu etkinleştir
-        }, false);
+             if (audioButton) audioButton.disabled = false;
+             // Event listener'ı kaldır ki tekrar tekrar tetiklenmesin
+             heartbeatAudio.removeEventListener('canplaythrough', onCanPlay);
+        };
 
-         heartbeatAudio.addEventListener('error', (e) => {
+        const onError = (e) => {
             console.error("Ses dosyası yüklenemedi veya hata oluştu:", e);
-            document.getElementById('btn-play-heartbeat').disabled = true;
-            document.getElementById('btn-play-heartbeat').textContent = 'Ses Hatası';
-        });
+            if (audioButton) {
+                audioButton.disabled = true;
+                audioButton.textContent = 'Ses Hatası';
+            }
+        };
 
-        // Başlangıçta butonu devre dışı bırak, yüklenince etkinleşsin
-        document.getElementById('btn-play-heartbeat').disabled = true;
+        heartbeatAudio.addEventListener('canplaythrough', onCanPlay, false);
+        heartbeatAudio.addEventListener('error', onError, false);
+
+        // Butonu başlangıçta devre dışı bırak
+        if (audioButton) audioButton.disabled = true;
+
+        // Tarayıcılar bazen 'canplaythrough' eventini atmayabilir,
+        // bu yüzden bir süre sonra hala yüklenmediyse butonu yine de etkinleştirmeyi deneyebiliriz.
+        // Ancak bu ideal değildir. Şimdilik sadece event'e güvenelim.
 
 
     } catch (e) {
         console.error("Audio nesnesi oluşturulamadı:", e);
-         document.getElementById('btn-play-heartbeat').disabled = true;
-         document.getElementById('btn-play-heartbeat').textContent = 'Ses Hatası';
+         if (audioButton) {
+             audioButton.disabled = true;
+             audioButton.textContent = 'Ses Hatası';
+         }
     }
 }
 
 
 // --- Kalp Atışı Sesini Oynatma/Durdurma ---
 function playHeartbeat() {
-    if (heartbeatAudio && heartbeatAudio.readyState >= 2) { // Yüklendi mi kontrolü (2: HAVE_CURRENT_DATA)
+    if (heartbeatAudio && heartbeatAudio.readyState >= 2) { // Yüklendi mi kontrolü
         if (heartbeatAudio.paused) {
             heartbeatAudio.play().catch(e => console.error("Ses çalma hatası:", e));
-            // Buton metni değişebilir: button.textContent = 'Durdur';
+            // Belki buton metnini değiştirebilirsin:
+            // document.getElementById('btn-play-heartbeat').textContent = 'Sesi Durdur';
         } else {
             heartbeatAudio.pause();
-            heartbeatAudio.currentTime = 0; // Başa sar
-             // Buton metni değişebilir: button.textContent = 'Oynat';
+            // İsteğe bağlı: Sesi başa sarmak için
+            // heartbeatAudio.currentTime = 0;
+            // Belki buton metnini değiştirebilirsin:
+            // document.getElementById('btn-play-heartbeat').textContent = 'Kalp Atışını Oynat';
         }
     } else {
         console.warn("Ses dosyası henüz hazır değil veya yüklenemedi.");
-        // Kullanıcıya bilgi verilebilir.
     }
 }
 
@@ -335,5 +340,5 @@ function playHeartbeat() {
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 } else {
-    init();
+    init(); // Zaten yüklendiyse doğrudan çağır
 }
