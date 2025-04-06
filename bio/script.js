@@ -128,21 +128,21 @@ function loadGLBModel(path) {
 
 // --- Etiket Oluşturma Fonksiyonu (Sprite ve Sabit Ölçek Kullanarak) ---
 function createLabels() {
-    // !!! ÖNEMLİ: BU POZİSYONLARI KENDİ MODELİNİZE GÖRE AYARLAMALISINIZ !!!
-    // Aşağıdaki değerler sadece başlangıç noktasıdır ve deneme yanılma gerektirir.
+    // !!! GÖRSELE DAYALI TAHMİNİ YENİ POZİSYONLAR !!!
+    // Bu pozisyonları kendi modelinizde test edip ince ayar yapmanız önerilir.
     const labelData = [
-        // Üst Kısım
-        { text: "Aort",           position: new THREE.Vector3( 0.0,  3.5, -0.5) }, // Önerilen yeni pozisyon
-        { text: "Pulmoner Arter", position: new THREE.Vector3( 1.0,  3.0, -0.2) }, // Önerilen yeni pozisyon
-        { text: "Vena Cava",      position: new THREE.Vector3( 1.5,  2.8,  0.2) }, // Önerilen yeni pozisyon
+        // Üst Kısım: Görselde Aort ortada ve en yukarıda. Pulmoner Arter ve Vena Cava onun sağında.
+        { text: "Aort",           position: new THREE.Vector3( 0.0,  3.3, -0.5) }, // Ortada, en yukarıda, hafif arkada
+        { text: "Pulmoner Arter", position: new THREE.Vector3( 1.0,  3.0, -0.6) }, // Aort'un sağında, biraz aşağıda ve arkasında
+        { text: "Vena Cava",      position: new THREE.Vector3( 1.5,  2.8,  0.0) }, // En sağda, Pulmoner Arter'den biraz aşağıda ve önünde
 
-        // Orta Kısım (Kulakçıklar)
-        { text: "Sağ Atriyum",    position: new THREE.Vector3( 1.8,  1.0,  0.5) }, // Önerilen yeni pozisyon
-        { text: "Sol Atriyum",    position: new THREE.Vector3(-1.8,  1.0,  0.3) }, // Önerilen yeni pozisyon
+        // Orta Kısım (Kulakçıklar): Görselde kalbin yanlarında, orta yükseklikte.
+        { text: "Sağ Atriyum",    position: new THREE.Vector3( 1.9,  0.8,  0.5) }, // Daha sağda, orta yükseklikte, önde
+        { text: "Sol Atriyum",    position: new THREE.Vector3(-1.9,  0.8,  0.3) }, // Daha solda, orta yükseklikte, biraz daha az önde
 
-        // Alt Kısım (Karıncıklar)
-        { text: "Sağ Ventrikül",  position: new THREE.Vector3( 1.5, -1.5,  1.0) }, // Önerilen yeni pozisyon
-        { text: "Sol Ventrikül",  position: new THREE.Vector3(-1.5, -1.5,  1.0) }  // Önerilen yeni pozisyon
+        // Alt Kısım (Karıncıklar): Görselde kalbin alt yanlarında.
+        { text: "Sağ Ventrikül",  position: new THREE.Vector3( 1.6, -1.8,  0.8) }, // Sağ altta, öne doğru
+        { text: "Sol Ventrikül",  position: new THREE.Vector3(-1.6, -1.8,  0.8) }  // Sol altta, öne doğru
     ];
 
     // Önceki etiketleri temizle
@@ -179,11 +179,13 @@ function createLabels() {
         });
         const sprite = new THREE.Sprite(spriteMaterial);
 
-        // --- SABİT ÖLÇEKLEME ---
-        // BU DEĞERLERİ (0.1, 0.05) DENEYEREK ETİKET BOYUTUNU AYARLAYIN.
-        sprite.scale.set(0.1, 0.05, 1); // Önceki adımdaki en iyi değeri buraya yazın veya ayarlayın
+        // SABİT ÖLÇEKLEME (Bu değerleri önceki adımdaki gibi ayarlayın)
+        // Etiket boyutunu buradan ayarlayın (örn: 0.1, 0.05 veya daha küçük)
+        sprite.scale.set(0.1, 0.05, 1); // Önceki ayarlamanızdaki en iyi değeri kullanın
 
-        sprite.position.copy(data.position); // Güncellenmiş veya sizin ayarladığınız pozisyonu kullan
+        // GÜNCELLENMİŞ TAHMİNİ POZİSYONU KULLAN
+        sprite.position.copy(data.position);
+
         sprite.visible = labelsVisible;
         scene.add(sprite);
         labels.push(sprite);
