@@ -226,19 +226,12 @@ function setupUIEventListeners() {
 
     // Cevap Gösterme/Gizleme
     window.toggleAnswer = function(button) {
-function setupUIEventListeners() {
-    // ... (Tab değiştirme kodu aynı kalır) ...
-
-    // Cevap Gösterme/Gizleme (Güncellendi - Animasyon için)
-    window.toggleAnswer = function(button) {
         const answerDiv = button.nextElementSibling; // Cevap div'ini al
         if (!answerDiv || !answerDiv.classList.contains('answer')) {
              console.error("Cevap elementi bulunamadı!");
              return;
         }
-
         const isShown = answerDiv.classList.contains('show');
-
         if (isShown) {
             // Gizle
             answerDiv.classList.remove('show');
@@ -250,7 +243,18 @@ function setupUIEventListeners() {
         }
     } // toggleAnswer fonksiyonu burada biter
 
-    // ... (Model kontrol butonları kodları aynı kalır) ...
+    // Model Kontrol Butonları
+    document.getElementById('btn-show-all')?.addEventListener('click', () => {
+        if (heartModel) heartModel.visible = true;
+        // İleride model parçalarını kontrol etmek için traverse kullanılabilir
+    });
+    document.getElementById('btn-isolate-heart')?.addEventListener('click', () => {
+        if (heartModel) heartModel.visible = true;
+        // İleride model parçalarını kontrol etmek için traverse kullanılabilir
+    });
+    document.getElementById('btn-toggle-labels')?.addEventListener('click', toggleLabels);
+    document.getElementById('btn-play-heartbeat')?.addEventListener('click', playHeartbeat);
+
 } // setupUIEventListeners fonksiyonu burada biter
 
     // Model Kontrol Butonları
