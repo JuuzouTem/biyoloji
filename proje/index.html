@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dolaşım Sistemi: İnteraktif Öğrenme - Behlül</title>
+    <link rel="stylesheet" href="style.css"> <!-- CSS dosyasını bağlıyoruz -->
+</head>
+<body>
+    <header>
+        <h1>DOLAŞIM SİSTEMİ: YAPI, GÖREV VE İŞLEYİŞ</h1>
+        <p>Behlül'ün İnteraktif Projesi</p>
+    </header>
+
+    <div class="container">
+        <div class="section">
+            <h2 class="section-title">İnteraktif 3D Kalp Modeli</h2>
+            <div id="model-container">
+                <!-- Three.js modeli buraya yüklenecek -->
+                <div id="loader-overlay">Yükleniyor...</div> <!-- Yüklenme göstergesi -->
+                <div class="model-info">Modeli döndürmek için fareyi sürükleyin. Yakınlaştırmak/uzaklaştırmak için kaydırın (scroll).</div>
+            </div>
+            <div class="controls">
+                <button id="btn-show-all">Tüm Sistemi Göster</button>
+                <button id="btn-isolate-heart">Sadece Kalbi Göster</button>
+                <!-- Daha detaylı kontroller (örn. sadece damarlar) modelin yapısına bağlıdır -->
+                <button id="btn-toggle-labels">Etiketleri Göster/Gizle</button>
+                <button id="btn-play-heartbeat">Kalp Atışını Oynat</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Dolaşım Sistemi Bilgileri</h2>
+            <div class="controls">
+                <button class="tab-btn active" data-tab="tab-gorevler">Temel Görevler</button>
+                <button class="tab-btn" data-tab="tab-bilesenler">Ana Bileşenler</button>
+                <button class="tab-btn" data-tab="tab-kalp-yapi">Kalp Yapısı</button>
+                <button class="tab-btn" data-tab="tab-damarlar">Kan Damarları</button>
+                <button class="tab-btn" data-tab="tab-kan">Kan ve Pıhtılaşma</button>
+                <button class="tab-btn" data-tab="tab-dongu">Kalp Döngüsü & EKG</button>
+                 <button class="tab-btn" data-tab="tab-lenf">Lenf Sistemi</button>
+            </div>
+
+            <!-- Tab İçerikleri -->
+            <div id="tab-gorevler" class="tab-content active">
+                <h3>Sistemin Temel Görevleri</h3>
+                <ul>
+                    <li><strong>Taşıma:</strong> O₂, CO₂, Besinler, Hormonlar, Atıklar</li>
+                    <li><strong>Düzenleme:</strong> Vücut Sıcaklığı (Termoregülasyon), pH Dengesi (Tamponlama), Sıvı Dengesi (Ozmotik Basınç)</li>
+                    <li><strong>Koruma:</strong> Pıhtılaşma (Kan kaybını önleme), Bağışıklık (Akyuvarlar, Antikorlar)</li>
+                </ul>
+                <div class="info-card">
+                    Dolaşım sistemi, yaşamsal maddelerin taşınması, vücut dengesinin korunması ve dış etkenlere karşı savunma gibi kritik görevleri üstlenir.
+                </div>
+            </div>
+
+            <div id="tab-bilesenler" class="tab-content">
+                 <h3>Sistemin Ana Bileşenleri</h3>
+                 <div class="flex-container">
+                    <div class="flex-item">
+                        <h4>Kalp</h4>
+                        <ul>
+                            <li>4 Odacıklı Pompa</li>
+                            <li><strong>Yapısı:</strong>
+                                <ul>
+                                    <li>Perikard (Dış Zar)</li>
+                                    <li>Miyokard (Kas Tabakası)</li>
+                                    <li>Endokard (İç Tabaka)</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="flex-item">
+                        <h4>Kan Damarları</h4>
+                         <ul>
+                            <li><strong>Arterler (Atardamarlar):</strong> Genellikle O₂'li kanı kalpten taşır. Kalın, elastik duvarlı.</li>
+                            <li><strong>Venler (Toplardamarlar):</strong> Genellikle CO₂'li kanı kalbe taşır. Daha ince duvarlı, kapakçık içerir.</li>
+                            <li><strong>Kapiller (Kılcal Damarlar):</strong> Tek katlı epitelden oluşur. Madde alışverişinin yapıldığı yer.</li>
+                        </ul>
+                    </div>
+                     <div class="flex-item">
+                         <h4>Kan</h4>
+                         <ul>
+                            <li><strong>Plazma (%55):</strong> Su, proteinler (albümin, globülin, fibrinojen), iyonlar, besinler, hormonlar, atıklar.</li>
+                            <li><strong>Kan Hücreleri (%45):</strong>
+                                <ul>
+                                    <li>Eritrosit (Alyuvar): O₂/CO₂ taşıma (Hemoglobin)</li>
+                                    <li>Lökosit (Akyuvar): Bağışıklık</li>
+                                    <li>Trombosit (Kan Pulcuğu): Pıhtılaşma</li>
+                                </ul>
+                            </li>
+                         </ul>
+                     </div>
+                 </div>
+            </div>
+
+            <div id="tab-kalp-yapi" class="tab-content">
+                <h3>Kalp Yapısı Detayları</h3>
+                 <div class="flex-container">
+                     <div class="flex-item">
+                        <h4>Kalp Odacıkları</h4>
+                        <ul>
+                            <li><strong>Sağ Atriyum (Kulakçık):</strong> Vücuttan gelen kirli kanı alır (Vena Cava).</li>
+                            <li><strong>Sağ Ventrikül (Karıncık):</strong> Kanı akciğerlere pompalar (Pulmoner Arter).</li>
+                            <li><strong>Sol Atriyum (Kulakçık):</strong> Akciğerlerden gelen temiz kanı alır (Pulmoner Venler).</li>
+                            <li><strong>Sol Ventrikül (Karıncık):</strong> Kanı tüm vücuda pompalar (Aort) - En kalın duvarlı odacık.</li>
+                        </ul>
+                     </div>
+                     <div class="flex-item">
+                         <h4>Kalp Kapakçıkları (Tek yönlü akışı sağlar)</h4>
+                        <ul>
+                            <li><strong>Triküspit Kapak:</strong> Sağ Atriyum ↔ Sağ Ventrikül</li>
+                            <li><strong>Pulmoner Kapak:</strong> Sağ Ventrikül ↔ Pulmoner Arter</li>
+                            <li><strong>Biküspit (Mitral) Kapak:</strong> Sol Atriyum ↔ Sol Ventrikül</li>
+                            <li><strong>Aort Kapağı:</strong> Sol Ventrikül ↔ Aort</li>
+                        </ul>
+                     </div>
+                 </div>
+            </div>
+
+            <div id="tab-damarlar" class="tab-content">
+                 <h3>Kan Damarları ve Özellikleri</h3>
+                 <table>
+                    <thead>
+                        <tr>
+                            <th>Damar Tipi</th>
+                            <th>Duvar Yapısı</th>
+                            <th>Kan Basıncı</th>
+                            <th>Akış Hızı</th>
+                            <th>Özellikler / Görev</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Arterler</strong></td>
+                            <td>Kalın, Elastik Lifli, Düz Kaslı</td>
+                            <td>Yüksek</td>
+                            <td>Hızlı</td>
+                            <td>Kanı kalpten taşır. Aort en büyük arterdir.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Venler</strong></td>
+                            <td>Arterlerden ince, daha az elastik, düz kaslı</td>
+                            <td>Düşük</td>
+                            <td>Arterlerden yavaş</td>
+                            <td>Kanı kalbe taşır. Genellikle kapakçık içerir (yerçekimine karşı).</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Kapillerler</strong></td>
+                            <td>Tek katlı yassı epitel (Endotel)</td>
+                            <td>Orta → Düşük</td>
+                            <td>Çok Yavaş</td>
+                            <td>Madde alışverişi (difüzyon, ozmoz, filtrasyon). Toplam yüzey alanı en fazla.</td>
+                        </tr>
+                    </tbody>
+                 </table>
+                 <h4>Kapiller Madde Alışverişi (Starling Hipotezi)</h4>
+                 <p>Kan basıncı ve ozmotik basınç farkına dayanır:</p>
+                 <ul>
+                     <li><strong>Arter Ucu:</strong> Kan Basıncı > Ozmotik Basınç → Sıvı ve küçük moleküller dokuya sızar (Filtrasyon).</li>
+                     <li><strong>Ven Ucu:</strong> Ozmotik Basınç > Kan Basıncı → Sıvı ve atıklar dokudan kana geri emilir (Geri Emilim).</li>
+                 </ul>
+            </div>
+
+             <div id="tab-kan" class="tab-content">
+                 <h3>Kan ve Pıhtılaşma</h3>
+                 <div class="flex-container">
+                    <div class="flex-item">
+                        <h4>Kan Grupları</h4>
+                        <ul>
+                            <li><strong>ABO Sistemi:</strong>
+                                <ul>
+                                    <li>Antijenler: A, B (Alyuvar zarında)</li>
+                                    <li>Antikorlar: Anti-A, Anti-B (Plazmada)</li>
+                                </ul>
+                            </li>
+                             <li><strong>Rh Sistemi:</strong>
+                                <ul>
+                                    <li>Antijen: Rh(D) (Alyuvar zarında)</li>
+                                    <li>Antikor: Anti-D (Rh(-) bireyde Rh(+) kanla karşılaşınca oluşur)</li>
+                                </ul>
+                            </li>
+                            <li><strong>Kan Uyuşmazlığı (Eritroblastosis Fetalis):</strong> Rh(-) anne, Rh(+) fetus. İlk gebelikte genelde sorun olmaz, ancak doğumda annenin kanına fetal Rh(+) hücreler karışırsa, anne Anti-D üretir. Sonraki Rh(+) gebeliklerde annenin Anti-D antikorları plasentadan fetüse geçerek alyuvarlarını parçalayabilir.</li>
+                        </ul>
+                    </div>
+                    <div class="flex-item">
+                        <h4>Kanın Pıhtılaşması (Hemostaz)</h4>
+                        <ol>
+                            <li><strong>Damar Büzülmesi (Vazokonstriksiyon):</strong> Yaralanan damar daralır.</li>
+                            <li><strong>Trombosit Tıkacı Oluşumu:</strong> Trombositler hasarlı bölgeye yapışır ve kümelenir.</li>
+                            <li><strong>Pıhtılaşma (Koagülasyon):</strong> Karmaşık bir reaksiyon zinciri (pıhtılaşma faktörleri, K vitamini, Ca<sup>++</sup> gereklidir):
+                                <ul>
+                                    <li>Protrombin → (Tromboplastin + Ca<sup>++</sup>) → Trombin</li>
+                                    <li>Fibrinojen → (Trombin) → Fibrin (Ağsı yapı, kan hücrelerini hapseder)</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+                 </div>
+            </div>
+
+            <div id="tab-dongu" class="tab-content">
+                <h3>Kalp Döngüsü, Sesler ve EKG</h3>
+                <div class="flex-container">
+                    <div class="flex-item">
+                         <h4>Kalp Döngüsü (Bir kalp atımı ≈ 0.85 sn)</h4>
+                         <ul>
+                            <li><strong>Sistol (Kasılma):</strong>
+                                <ul>
+                                    <li>Kulakçık Sistolü (≈ 0.15 sn): Kulakçıklar kasılır, kan karıncıklara dolar.</li>
+                                    <li>Karıncık Sistolü (≈ 0.30 sn): Karıncıklar kasılır, kan arterlere pompalanır (AV kapaklar kapanır - S1 sesi, Semilunar kapaklar açılır).</li>
+                                </ul>
+                             </li>
+                             <li><strong>Diyastol (Gevşeme) (≈ 0.40 sn):</strong>
+                                <ul>
+                                    <li>Kulakçık ve Karıncıklar aynı anda gevşer. Semilunar kapaklar kapanır (S2 sesi), AV kapaklar açılır, kalp tekrar kanla dolar.</li>
+                                </ul>
+                             </li>
+                         </ul>
+                         <h4>Kalp Sesleri</h4>
+                         <ul>
+                             <li><strong>S1 (Lubb):</strong> AV kapakçıkların (Triküspit ve Mitral) kapanmasıyla oluşur. Karıncık sistolünün başlangıcı.</li>
+                             <li><strong>S2 (Dubb):</strong> Semilunar kapakçıkların (Aort ve Pulmoner) kapanmasıyla oluşur. Karıncık diyastolünün başlangıcı.</li>
+                         </ul>
+                    </div>
+                    <div class="flex-item">
+                        <h4>Kalbin Elektriksel Uyarımı ve İleti Yolu</h4>
+                        <ol>
+                            <li><strong>Sinoatriyal (SA) Düğüm (Pacemaker):</strong> Sağ kulakçık duvarında. Uyarıyı başlatır.</li>
+                            <li><strong>Atriyoventriküler (AV) Düğüm:</strong> Kulakçıklar ve karıncıklar arasında. Uyarıyı kısa süre bekletir.</li>
+                            <li><strong>His Demetleri:</strong> Uyarıyı karıncık duvarlarına taşır.</li>
+                            <li><strong>Purkinje Lifleri:</strong> Uyarıyı karıncık kas hücrelerine yayar ve kasılmayı sağlar.</li>
+                        </ol>
+                         <h4>EKG (Elektrokardiyogram)</h4>
+                         <p>Kalbin elektriksel aktivitesinin kaydedilmesi.</p>
+                         <ul>
+                             <li><strong>P Dalgası:</strong> Kulakçıkların depolarizasyonu (kasılması).</li>
+                             <li><strong>QRS Kompleksi:</strong> Karıncıkların depolarizasyonu (kasılması) ve kulakçıkların repolarizasyonu (gevşemesi - QRS içinde maskelenir).</li>
+                             <li><strong>T Dalgası:</strong> Karıncıkların repolarizasyonu (gevşemesi).</li>
+                         </ul>
+                         <h4>Kan Basıncı (Tansiyon)</h4>
+                         <ul>
+                             <li><strong>Sistolik Basınç (Büyük Tansiyon):</strong> Karıncıklar kasıldığında arterlerdeki maksimum basınç (Normal ≈ 120 mmHg).</li>
+                             <li><strong>Diyastolik Basınç (Küçük Tansiyon):</strong> Karıncıklar gevşediğinde arterlerdeki minimum basınç (Normal ≈ 80 mmHg).</li>
+                         </ul>
+                    </div>
+                </div>
+            </div>
+
+             <div id="tab-lenf" class="tab-content">
+                 <h3>Lenf Sistemi</h3>
+                 <ul>
+                     <li>Kan damarlarına sızan ve geri emilemeyen doku sıvısını (lenf) toplayarak tekrar kan dolaşımına katmak.</li>
+                     <li>İnce bağırsaklardan emilen yağ asitleri ve gliserolün (şilomikronlar halinde) kan dolaşımına taşınmasını sağlamak.</li>
+                     <li>Vücut savunmasında (bağışıklık) görev almak. Lenf düğümlerinde bulunan lenfositler (B ve T) ve makrofajlar mikroplarla savaşır.</li>
+                 </ul>
+                 <h4>Lenf Sisteminin Elemanları:</h4>
+                 <ul>
+                     <li><strong>Lenf Kılcalları:</strong> Tek katlı endotelden oluşur, bir ucu kapalıdır. Doku sıvısını toplar.</li>
+                     <li><strong>Lenf Toplardamarları:</strong> Lenfi taşır, yapısı venlere benzer (kapakçık içerir).</li>
+                     <li><strong>Lenf Düğümleri:</strong> Lenf damarları üzerinde bulunan, bağışıklık hücrelerini barındıran küçük, fasulye şeklinde yapılar (örn. koltuk altı, kasık, boyun).</li>
+                     <li><strong>Ana Lenf Damarları:</strong>
+                         <ul>
+                             <li>Peke Sarnıcı ve Göğüs Kanalı: Vücudun büyük kısmından (bacaklar, karın, sol kol, başın solu) lenfi toplar ve sol köprücük altı toplardamarına bağlar.</li>
+                             <li>Sağ Lenfatik Kanal: Başın ve göğsün sağ üst kısmı ile sağ koldan lenfi toplar ve sağ köprücük altı toplardamarına bağlar.</li>
+                         </ul>
+                     </li>
+                     <li><strong>Diğer Lenfoid Organlar:</strong> Dalak, Timüs, Bademcikler, Kırmızı Kemik İliği.</li>
+                 </ul>
+                 <div class="info-card">
+                     Lenf sıvısının hareketi kan gibi bir pompa (kalp) tarafından sağlanmaz. İskelet kaslarının kasılması, damar duvarındaki düz kaslar, solunum hareketleri ve damarlardaki tek yönlü kapakçıklar lenfin hareketini sağlar. Bu yüzden lenf akışı kana göre daha yavaştır.
+                 </div>
+             </div>
+            <!-- Diğer tab içerikleri buraya eklenecek -->
+
+        </div>
+
+<div class="section">
+            <h2 class="section-title">AYT Tipi Sorular</h2>
+
+            <!-- ESKİ SORU BLOKLARINI BURADAN SİLDİN -->
+
+            <!-- ŞİMDİ BU SATIRI EKLE: -->
+            <div id="ayt-questions-list">
+                <!-- JS burayı dolduracak -->
+            </div>
+
+        </div>
+
+    <footer>
+        <p>Bu interaktif proje Behlül tarafından 11. Sınıf Biyoloji dersi için hazırlanmıştır.</p>
+        <!-- İsteğe bağlı QR kod -->
+    </footer>
+
+    <!-- Three.js Kütüphaneleri (CDN) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- OrbitControls: Modeli fare ile döndürme/yakınlaştırma -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- GLTFLoader: .glb veya .gltf formatındaki modelleri yükleme -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+     <!-- FontLoader ve TextGeometry (Etiketler için alternatif) -->
+     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
+
+
+    <script src="script.js"></script> <!-- JavaScript dosyamızı bağlıyoruz -->
+</body>
+</html>
