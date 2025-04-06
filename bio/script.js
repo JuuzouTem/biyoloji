@@ -178,17 +178,24 @@ function createLabels() {
         const spriteMaterial = new THREE.SpriteMaterial({
             map: texture,
             transparent: true,
-            depthTest: false, // Her zaman görünür (isteğe bağlı)
-            sizeAttenuation: false // Yaklaşınca/uzaklaşınca boyutu sabit kalsın
+            depthTest: false, // Etiketlerin diğer nesnelerin arkasında kalmamasını sağlar (isteğe bağlı)
+            sizeAttenuation: false // Etiket boyutunun mesafeyle değişmemesini sağlar
         });
         const sprite = new THREE.Sprite(spriteMaterial);
 
-         // Sprite boyutunu ayarla (px cinsinden gibi davranması için)
-        sprite.scale.set(canvas.width * 0.03, canvas.height * 0.03, 1); // Ölçeği ayarlayın
-
+        // --- DÜZELTME BURADA ---
+        // Sprite boyutunu ayarlamak için daha küçük bir ölçek faktörü kullanın.
+        // Bu değeri (0.008) deneyerek ayarlamanız gerekebilir.
+        // Biraz daha küçültmek için 0.006, büyütmek için 0.01 gibi değerler deneyin.
+        const labelScaleFactor = 0.008;
+        sprite.scale.set(canvas.width * labelScaleFactor, canvas.height * labelScaleFactor, 1);
 
         // Pozisyonu ayarla (modele göre)
         sprite.position.copy(data.position);
+
+        sprite.visible = labelsVisible; // Başlangıç görünürlüğü
+        scene.add(sprite);
+        labels.push(sprite);
 
         sprite.visible = labelsVisible; // Başlangıç görünürlüğü
         scene.add(sprite);
