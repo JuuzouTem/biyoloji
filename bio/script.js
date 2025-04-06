@@ -22,36 +22,45 @@ function init() {
 
     // 1. Sahne Oluşturma
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf0f4f8); // CSS ile aynı arka plan rengi
+    scene.background = new THREE.Color(0xf0f4f8);
 
     // 2. Kamera Oluşturma
     const aspect = modelContainer.clientWidth / modelContainer.clientHeight;
-    camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 1000); // Görüş açısı ayarlandı
+    camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 1000);
     camera.position.copy(initialCameraPosition);
-    camera.lookAt(scene.position); // Sahnenin merkezine bak
+    camera.lookAt(scene.position);
 
     // 3. Renderer Oluşturma
-    renderer = new THREE.WebGLRenderer({ antialias: true }); // Kenar yumuşatma aktif
+    renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(modelContainer.clientWidth, modelContainer.clientHeight);
-    renderer.setPixelRatio(window.devicePixelRatio); // Daha net görüntü için
-    modelContainer.appendChild(renderer.domElement); // Canvas'ı div'e ekle
+    renderer.setPixelRatio(window.devicePixelRatio);
+    modelContainer.appendChild(renderer.domElement);
 
     // 4. Kontrolleri Ekleme (OrbitControls)
     controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true; // Yumuşak dönüş efekti
+    controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-    controls.screenSpacePanning = false; // Kaydırmayı engelle
-    controls.minDistance = 2; // Minimum yaklaşma mesafesi
-    controls.maxDistance = 25; // Maksimum uzaklaşma mesafesi
-    controls.target.set(0, 0, 0); // Dönüş merkezi
+    controls.screenSpacePanning = false;
+    controls.minDistance = 2;
+    controls.maxDistance = 25;
+    controls.target.set(0, 0, 0);
 
-    // 5. Işıkları Ekleme
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7); // Ortam ışığı
+    // 5. Işıkları Ekleme (Geliştirilmiş)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.0); // Ortam ışığı yoğunluğu artırıldı
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9); // Yönlü ışık (güneş gibi)
-    directionalLight.position.set(5, 10, 7); // Işığın konumu
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5); // Ana ışık yoğunluğu artırıldı ve konumu ayarlandı
+    directionalLight.position.set(5, 8, 10);
+    directionalLight.target.position.set(0, 0, 0);
     scene.add(directionalLight);
+    scene.add(directionalLight.target);
+
+    // İsteğe Bağlı: İkinci dolgu ışığı
+    const directionalLight2 = new THREE.DirectionalLight(0xaaaaaa, 0.8);
+    directionalLight2.position.set(-5, -3, -5);
+    directionalLight2.target.position.set(0, 0, 0);
+    scene.add(directionalLight2);
+    scene.add(directionalLight2.target);
 
     // 6. Modeli Yükleme
     loadGLBModel(modelPath);
@@ -72,36 +81,38 @@ function init() {
 // --- Model Yükleme Fonksiyonu ---
 function loadGLBModel(path) {
     const loader = new THREE.GLTFLoader();
-    if (loaderOverlay) loaderOverlay.style.display = 'flex'; // Yükleme göstergesini göster
+    if (loaderOverlay) loaderOverlay.style.display = 'flex';
 
     loader.load(
         path,
-        // Model başarıyla yüklendiğinde
+        // Başarıyla yüklendiğinde
         function (gltf) {
             heartModel = gltf.scene;
 
-            // Modelin boyutunu ve konumunu ayarla (modele göre değişir)
             const box = new THREE.Box3().setFromObject(heartModel);
             const center = box.getCenter(new THREE.Vector3());
             const size = box.getSize(new THREE.Vector3());
 
-            // Modeli ortala ve ölçekle
-            heartModel.position.sub(center); // Merkeze taşı
+            heartModel.position.sub(center);
             const maxDim = Math.max(size.x, size.y, size.z);
-            const scale = 4 / maxDim; // Modelin yaklaşık 4 birim büyüklüğünde olmasını sağla
+            const scale = 4 / maxDim;
             heartModel.scale.set(scale, scale, scale);
 
             scene.add(heartModel);
-
-            // Model yüklendikten sonra etiketleri oluştur
-            createLabels();
-            if (loaderOverlay) loaderOverlay.style.display = 'none'; // Yükleme göstergesini gizle
+            createLabels(); // Etiketleri model yüklendikten sonra oluştur
+            if (loaderOverlay) loaderOverlay.style.display = 'none';
         },
-        // Yükleme ilerlemesi (isteğe bağlı)
+        // Yükleme ilerlemesi (Geliştirilmiş - Infinity% sorunu düzeltildi)
         function (xhr) {
             if (loaderOverlay) {
-                const percentLoaded = (xhr.loaded / xhr.total * 100).toFixed(0);
-                loaderOverlay.textContent = `Yükleniyor... ${percentLoaded}%`;
+                if (xhr.lengthComputable && xhr.total > 0) {
+                    const percentLoaded = (xhr.loaded / xhr.total * 100).toFixed(0);
+                    loaderOverlay.textContent = `Yükleniyor... ${percentLoaded}%`;
+                } else {
+                    const loadedMB = (xhr.loaded / 1024 / 1024).toFixed(2);
+                    loaderOverlay.textContent = `Yükleniyor... (${loadedMB} MB)`;
+                    // Veya: loaderOverlay.textContent = `Yükleniyor...`;
+                }
             }
         },
         // Hata durumunda
@@ -117,41 +128,40 @@ function loadGLBModel(path) {
 
 // --- Etiket Oluşturma Fonksiyonu (Sprite ve Sabit Ölçek Kullanarak) ---
 function createLabels() {
-    // ÖNEMLİ: Bu pozisyonlar sizin kullandığınız `heart_model.glb` modeline
-    // göre ayarlanmalıdır. Modeldeki belirli parçaların pozisyonlarını
-    // alarak veya deneme yanılma ile bulabilirsiniz.
+    // !!! ÖNEMLİ: BU POZİSYONLARI KENDİ MODELİNİZE GÖRE AYARLAMALISINIZ !!!
+    // Aşağıdaki değerler sadece başlangıç noktasıdır ve deneme yanılma gerektirir.
     const labelData = [
-        { text: "Aort", position: new THREE.Vector3(0, 2.5, 0) },
-        { text: "Pulmoner Arter", position: new THREE.Vector3(0.8, 2, 0.5) },
-        { text: "Sol Ventrikül", position: new THREE.Vector3(-1, -1, 0.5) },
-        { text: "Sağ Ventrikül", position: new THREE.Vector3(1, -1, 0.5) },
-        { text: "Sol Atriyum", position: new THREE.Vector3(-1, 1, 0) },
-        { text: "Sağ Atriyum", position: new THREE.Vector3(1, 1, 0) },
-        { text: "Vena Cava", position: new THREE.Vector3(1.2, 2.0, 0.2) }
-        // ... diğer etiketler eklenebilir
+        // Üst Kısım
+        { text: "Aort",           position: new THREE.Vector3( 0.0,  3.5, -0.5) }, // Önerilen yeni pozisyon
+        { text: "Pulmoner Arter", position: new THREE.Vector3( 1.0,  3.0, -0.2) }, // Önerilen yeni pozisyon
+        { text: "Vena Cava",      position: new THREE.Vector3( 1.5,  2.8,  0.2) }, // Önerilen yeni pozisyon
+
+        // Orta Kısım (Kulakçıklar)
+        { text: "Sağ Atriyum",    position: new THREE.Vector3( 1.8,  1.0,  0.5) }, // Önerilen yeni pozisyon
+        { text: "Sol Atriyum",    position: new THREE.Vector3(-1.8,  1.0,  0.3) }, // Önerilen yeni pozisyon
+
+        // Alt Kısım (Karıncıklar)
+        { text: "Sağ Ventrikül",  position: new THREE.Vector3( 1.5, -1.5,  1.0) }, // Önerilen yeni pozisyon
+        { text: "Sol Ventrikül",  position: new THREE.Vector3(-1.5, -1.5,  1.0) }  // Önerilen yeni pozisyon
     ];
 
-    // Önceki etiketleri temizle (varsa)
+    // Önceki etiketleri temizle
     labels.forEach(label => scene.remove(label));
     labels = [];
 
     labelData.forEach(data => {
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
-        const fontSize = 20; // Yazı tipi boyutu
+        const fontSize = 20;
         context.font = `Bold ${fontSize}px Arial`;
         const textMetrics = context.measureText(data.text);
         const textWidth = textMetrics.width;
 
-        // Canvas boyutunu metne göre ayarla (kenar boşluklu)
         canvas.width = textWidth + 10;
         canvas.height = fontSize + 10;
 
-        // Arka plan
         context.fillStyle = "rgba(0, 0, 0, 0.6)";
         context.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Metin
         context.font = `Bold ${fontSize}px Arial`;
         context.fillStyle = "white";
         context.textAlign = "center";
@@ -164,34 +174,27 @@ function createLabels() {
         const spriteMaterial = new THREE.SpriteMaterial({
             map: texture,
             transparent: true,
-            depthTest: false, // Etiketler modelin arkasında kalsa bile görünsün
-            sizeAttenuation: false // Boyut mesafeyle değişmesin
+            depthTest: false,
+            sizeAttenuation: false
         });
         const sprite = new THREE.Sprite(spriteMaterial);
 
         // --- SABİT ÖLÇEKLEME ---
-        // Bu değerleri (0.1, 0.05) deneyerek etiket boyutunu ayarlayın.
-        // Daha küçük yapmak için: 0.05, 0.025 gibi
-        // Biraz daha büyük yapmak için: 0.15, 0.075 gibi değerler deneyin.
-        sprite.scale.set(0.1, 0.05, 1); // SABİT DEĞERLERİ AYARLAYIN
+        // BU DEĞERLERİ (0.1, 0.05) DENEYEREK ETİKET BOYUTUNU AYARLAYIN.
+        sprite.scale.set(0.1, 0.05, 1); // Önceki adımdaki en iyi değeri buraya yazın veya ayarlayın
 
-        // Etiketin pozisyonunu ayarla
-        sprite.position.copy(data.position);
-
-        sprite.visible = labelsVisible; // Başlangıç görünürlüğü
+        sprite.position.copy(data.position); // Güncellenmiş veya sizin ayarladığınız pozisyonu kullan
+        sprite.visible = labelsVisible;
         scene.add(sprite);
-        labels.push(sprite); // Etiketleri listeye ekle
+        labels.push(sprite);
     });
 }
 
-
 // --- Animasyon Döngüsü ---
 function animate() {
-    requestAnimationFrame(animate); // Tarayıcıdan bir sonraki frame'i iste
-
-    controls.update(); // Damping etkinse kontrolleri güncelle
-
-    renderer.render(scene, camera); // Sahneyi render et
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
 }
 
 // --- Pencere Boyutlandırma İşleyici ---
@@ -202,31 +205,27 @@ function onWindowResize() {
 
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
-
     renderer.setSize(width, height);
 }
 
 // --- UI Olay Dinleyicileri ---
 function setupUIEventListeners() {
-    // --- Tab Değiştirme ---
+    // Tab Değiştirme
     document.querySelectorAll('.tab-btn').forEach(button => {
         button.addEventListener('click', () => {
             const tabId = button.getAttribute('data-tab');
-            // Aktif sınıfları yönet
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            // Seçileni aktif yap
             button.classList.add('active');
             const targetTab = document.getElementById(tabId);
             if (targetTab) targetTab.classList.add('active');
         });
     });
 
-    // --- Cevap Gösterme/Gizleme ---
-    // Global fonksiyona erişim için window'a ekleyelim (HTML'deki onclick'ler için)
+    // Cevap Gösterme/Gizleme
     window.toggleAnswer = function(button) {
         const answer = button.nextElementSibling;
-        if (!answer) return; // Güvenlik kontrolü
+        if (!answer) return;
         if (answer.style.display === 'block') {
             answer.style.display = 'none';
             button.textContent = 'Cevabı Göster';
@@ -236,27 +235,15 @@ function setupUIEventListeners() {
         }
     }
 
-    // --- Model Kontrol Butonları ---
+    // Model Kontrol Butonları
     document.getElementById('btn-show-all')?.addEventListener('click', () => {
         if (heartModel) heartModel.visible = true;
-        // İleride: Eğer modelde ayrı parçalar varsa, burada hepsini görünür yapabilirsiniz.
+        // İleride model parçalarını kontrol etmek için traverse kullanılabilir
     });
-
     document.getElementById('btn-isolate-heart')?.addEventListener('click', () => {
-        if (heartModel) {
-            heartModel.visible = true; // Ana modeli göster
-             // İleride: Model parçalarına göre damarları vs. gizleyebilirsiniz.
-             // Örneğin:
-             // heartModel.traverse((child) => {
-             //    if (child.isMesh && child.name.toLowerCase().includes('artery')) {
-             //       child.visible = false;
-             //    } else if (child.isMesh) {
-             //       child.visible = true;
-             //    }
-             // });
-        }
+        if (heartModel) heartModel.visible = true;
+        // İleride model parçalarını kontrol etmek için traverse kullanılabilir
     });
-
     document.getElementById('btn-toggle-labels')?.addEventListener('click', toggleLabels);
     document.getElementById('btn-play-heartbeat')?.addEventListener('click', playHeartbeat);
 }
@@ -276,16 +263,14 @@ function loadAudio(path) {
     const audioButton = document.getElementById('btn-play-heartbeat');
     try {
         heartbeatAudio = new Audio(path);
-        heartbeatAudio.loop = true; // <<< SESİN TEKRAR ETMESİ İÇİN true
+        heartbeatAudio.loop = true; // Sesin tekrar etmesi için
         heartbeatAudio.preload = 'auto';
 
         const onCanPlay = () => {
              console.log("Ses dosyası çalmaya hazır.");
              if (audioButton) audioButton.disabled = false;
-             // Event listener'ı kaldır ki tekrar tekrar tetiklenmesin
              heartbeatAudio.removeEventListener('canplaythrough', onCanPlay);
         };
-
         const onError = (e) => {
             console.error("Ses dosyası yüklenemedi veya hata oluştu:", e);
             if (audioButton) {
@@ -296,14 +281,7 @@ function loadAudio(path) {
 
         heartbeatAudio.addEventListener('canplaythrough', onCanPlay, false);
         heartbeatAudio.addEventListener('error', onError, false);
-
-        // Butonu başlangıçta devre dışı bırak
-        if (audioButton) audioButton.disabled = true;
-
-        // Tarayıcılar bazen 'canplaythrough' eventini atmayabilir,
-        // bu yüzden bir süre sonra hala yüklenmediyse butonu yine de etkinleştirmeyi deneyebiliriz.
-        // Ancak bu ideal değildir. Şimdilik sadece event'e güvenelim.
-
+        if (audioButton) audioButton.disabled = true; // Başlangıçta devre dışı
 
     } catch (e) {
         console.error("Audio nesnesi oluşturulamadı:", e);
@@ -314,31 +292,22 @@ function loadAudio(path) {
     }
 }
 
-
 // --- Kalp Atışı Sesini Oynatma/Durdurma ---
 function playHeartbeat() {
-    if (heartbeatAudio && heartbeatAudio.readyState >= 2) { // Yüklendi mi kontrolü
+    if (heartbeatAudio && heartbeatAudio.readyState >= 2) {
         if (heartbeatAudio.paused) {
             heartbeatAudio.play().catch(e => console.error("Ses çalma hatası:", e));
-            // Belki buton metnini değiştirebilirsin:
-            // document.getElementById('btn-play-heartbeat').textContent = 'Sesi Durdur';
         } else {
             heartbeatAudio.pause();
-            // İsteğe bağlı: Sesi başa sarmak için
-            // heartbeatAudio.currentTime = 0;
-            // Belki buton metnini değiştirebilirsin:
-            // document.getElementById('btn-play-heartbeat').textContent = 'Kalp Atışını Oynat';
         }
     } else {
         console.warn("Ses dosyası henüz hazır değil veya yüklenemedi.");
     }
 }
 
-
 // --- Başlatma ---
-// DOM tamamen yüklendiğinde init fonksiyonunu çağır
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 } else {
-    init(); // Zaten yüklendiyse doğrudan çağır
+    init();
 }
