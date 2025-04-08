@@ -87,6 +87,7 @@ header h1 {
     font-size: 1.5em;
     color: #1a5276;
     z-index: 10; /* Canvas'ın üzerinde */
+    /* pointer-events: none; Yükleme sırasında tıklamayı engellemek için kaldırılabilir */
 }
 
 
@@ -124,11 +125,11 @@ button {
     font-size: 0.95em;
 }
 
-button:hover {
+button:hover:not(:disabled) { /* :disabled olmayanlara hover efekti */
     background-color: #2980b9;
     transform: translateY(-1px); /* Hafif yukarı kalkma efekti */
 }
-button:active {
+button:active:not(:disabled) { /* :disabled olmayanlara active efekti */
     transform: translateY(0px); /* Tıklama efekti */
 }
 
@@ -137,7 +138,8 @@ button.active { /* Tab butonları için */
     font-weight: bold;
 }
 button:disabled {
-    background-color: #a0a0a0;
+    background-color: #bdc3c7; /* Devre dışı buton rengi */
+    color: #7f8c8d;
     cursor: not-allowed;
     transform: none;
 }
@@ -158,61 +160,45 @@ button:disabled {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Bilgi Kartları */
-.info-card {
-    background-color: #eaf2f8; /* Daha açık mavi */
-    border-left: 5px solid #3498db;
-    padding: 15px 20px;
-    margin: 15px 0;
-    border-radius: 5px;
+/* Bilgi Blokları ve Kartları */
+.info-block {
+    background-color: #eaf2f8; /* Açık mavi arka plan */
+    border-radius: 8px;        /* Köşeleri yumuşat */
+    padding: 15px 20px;        /* İç boşluk */
+    margin-top: 15px;          /* Üstte boşluk */
+    margin-bottom: 20px;       /* Altta boşluk */
+    border: 1px solid #d0d9e3; /* İnce bir kenarlık */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Hafif bir gölge */
 }
 
-/* AYT Soruları */
-.ayt-question {
-    background-color: #fdfefe;
-    border: 1px solid #e5e8eb;
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-}
-
-.question {
-    font-weight: 600; /* Biraz daha kalın */
+.info-block h4 {
+    margin-top: 0;
+    color: #1a5276;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 8px;
     margin-bottom: 12px;
-    font-size: 1.05em;
-    color: #34495e;
 }
 
-.options {
-    margin-left: 5px; /* Çok içeride olmasın */
-    margin-bottom: 15px;
-    line-height: 1.8; /* Seçenek araları */
+.info-block ul, .info-block ol {
+    padding-left: 20px;
 }
 
-.answer-btn {
-    background-color: #2ecc71; /* Yeşil cevap butonu */
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9em;
-}
-.answer-btn:hover {
-     background-color: #27ae60;
+.info-block li {
+    margin-bottom: 8px;
 }
 
-.answer {
-    display: none;
-    margin-top: 15px;
-    padding: 12px;
-    background-color: #e8f6f3; /* Cevap alanı arka planı */
-    border-left: 4px solid #1abc9c; /* Yeşil kenar */
-    border-radius: 4px;
-    font-size: 0.95em;
+/* Flex container içindeki info-block'lar için ek ayar */
+.flex-container .info-block {
+     margin-top: 0;
 }
-.answer strong {
-    color: #16a085; /* Koyu yeşil */
+
+.info-card {
+    background-color: #e8f6f3;
+    border-left: 5px solid #1abc9c;
+    padding: 15px 20px;
+    margin: 15px 0 20px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
 /* Tablolar */
@@ -245,6 +231,181 @@ tr:hover {
     background-color: #eef2f7; /* Satır üzerine gelince vurgu */
 }
 
+/* --- AYT Online Test Stilleri --- */
+
+#ayt-start-screen {
+    text-align: center;
+    padding: 30px 0;
+}
+
+#ayt-start-screen p {
+    margin-bottom: 15px;
+    font-size: 1.1em;
+}
+
+#ayt-test-container {
+    /* Ana test konteyneri */
+}
+
+.ayt-progress-indicator {
+    text-align: right;
+    margin-bottom: 15px;
+    font-weight: bold;
+    color: #555;
+}
+
+.ayt-question-card {
+    background-color: #fdfefe;
+    border: 1px solid #e5e8eb;
+    padding: 25px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+}
+
+.ayt-question-text {
+    font-weight: 600;
+    margin-bottom: 20px;
+    font-size: 1.1em;
+    color: #34495e;
+    line-height: 1.6;
+}
+
+.ayt-options-area .option-item {
+    margin-bottom: 10px;
+}
+
+/* Yeni, daha basit seçenek stili */
+.ayt-options-area label {
+    display: block; /* Label tüm satırı kapsasın */
+    padding: 10px 15px 10px 40px; /* Radio için solda yer */
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    position: relative;
+    transition: background-color 0.2s ease;
+    line-height: 1.5; /* Dikey hizalama için */
+}
+
+.ayt-options-area label:hover {
+    background-color: #f4f6f6;
+}
+
+.ayt-options-area input[type="radio"] {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+    cursor: pointer;
+    accent-color: #3498db;
+    width: 1.2em; /* Biraz daha belirgin */
+    height: 1.2em;
+}
+
+.ayt-options-area input[type="radio"]:checked + label {
+    background-color: #eaf2f8;
+    border-color: #3498db;
+    font-weight: 500; /* Çok kalın olmasın */
+}
+
+/* Navigasyon Butonları */
+.ayt-navigation-controls {
+    display: flex;
+    justify-content: space-between; /* Butonları kenarlara yasla */
+    margin-top: 25px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.ayt-navigation-controls button {
+    padding: 10px 25px; /* Daha belirgin butonlar */
+}
+#btn-prev-question {
+    background-color: #7f8c8d; /* Önceki butonu farklı renk */
+}
+#btn-prev-question:hover:not(:disabled) {
+     background-color: #6c7a7d;
+}
+#btn-finish-test {
+    background-color: #2ecc71; /* Bitir butonu yeşil */
+}
+#btn-finish-test:hover:not(:disabled) {
+    background-color: #27ae60;
+}
+
+/* Sonuç Ekranı */
+.ayt-results-summary {
+    padding: 25px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    text-align: center;
+}
+.ayt-results-summary h3 {
+    margin-top: 0;
+    color: #1a5276;
+}
+
+#ayt-final-score {
+    font-size: 1.4em;
+    font-weight: bold;
+    margin: 20px 0;
+    color: #34495e;
+}
+
+#ayt-results-details {
+    margin-top: 25px;
+    text-align: left;
+    border-top: 1px dashed #ccc;
+    padding-top: 20px;
+}
+
+#ayt-results-details .result-item {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+#ayt-results-details .result-item.incorrect-answer {
+    background-color: #fdedec;
+    border-left: 4px solid #e74c3c;
+}
+
+#ayt-results-details .result-item strong {
+    display: block;
+    margin-bottom: 5px;
+}
+#ayt-results-details .result-item .user-choice {
+    color: #c0392b; /* Kullanıcının yanlış cevabı */
+}
+#ayt-results-details .result-item .correct-choice {
+     color: #27ae60; /* Doğru cevap */
+}
+#ayt-results-details .result-item .explanation {
+    font-size: 0.9em;
+    color: #555;
+    margin-top: 8px;
+}
+
+#btn-restart-test {
+     margin-top: 20px;
+     background-color: #f39c12; /* Tekrar Dene butonu */
+}
+#btn-restart-test:hover:not(:disabled) {
+      background-color: #e67e22;
+}
+
+/* Responsive için küçük ek düzeltme */
+@media (max-width: 768px) {
+    .ayt-navigation-controls {
+        flex-direction: column-reverse; /* Butonlar alt alta, Sonraki/Bitir üstte */
+        gap: 10px;
+    }
+     .ayt-navigation-controls button {
+        width: 100%; /* Tam genişlik */
+    }
+}
+
 /* Footer */
 footer {
     text-align: center;
@@ -262,8 +423,12 @@ footer {
     header h1 {
         font-size: 1.6em;
     }
+    .flex-container {
+        flex-direction: column; /* Küçük ekranda alt alta */
+        gap: 15px;
+    }
     .flex-item {
-        min-width: 95%; /* Küçük ekranda tam genişlik */
+        min-width: 100%; /* Tam genişlik */
     }
 
     #model-container {
@@ -280,44 +445,19 @@ footer {
     .section-title {
         font-size: 1.4em;
     }
-}
-/* AYT Soruları - Animasyon için Ekleme/Güncelleme */
-/* Eğer zaten .ayt-question stiliniz varsa, aşağıdaki answer ve answer.show
-   kısımlarını ona göre ayarlayabilirsiniz, yoksa direkt ekleyin */
-.ayt-question {
-    background-color: #fdfefe;
-    border: 1px solid #e5e8eb;
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    overflow: hidden; /* Animasyon için önemli */
-}
-
-/* .question, .options, .answer-btn stilleri öncekiyle aynı kalabilir */
-
-.answer {
-    /* Başlangıç durumu: Gizli */
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
-    margin-top: 0;
-    padding-top: 0;
-    padding-bottom: 0;
-    border-left: 4px solid #1abc9c;
-    background-color: #e8f6f3;
-    border-radius: 0 0 4px 4px;
-    font-size: 0.95em;
-    transition: all 0.5s ease-in-out; /* Geçiş efekti */
-}
-
-.answer.show {
-    /* Gösterildiğinde: Genişle ve görünür ol */
-    max-height: 500px; /* İçeriğe yetecek kadar (artırılabilir) */
-    opacity: 1;
-    margin-top: 15px;
-    padding: 12px;
-}
-
-.answer strong {
-    color: #16a085;
+    .info-block {
+        padding: 12px 15px;
+    }
+    table {
+        font-size: 0.85em; /* Tablo içeriğini küçült */
+    }
+    th, td {
+        padding: 8px 10px;
+    }
+    .ayt-question .options label {
+        padding-left: 30px; /* Radio butonu için biraz daha az yer */
+    }
+    .ayt-question .options input[type="radio"] {
+        left: 8px;
+    }
 }
