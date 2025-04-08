@@ -1,3 +1,5 @@
+/* --- START OF FILE style.css --- */
+
 /* Genel Stiller */
 body {
     margin: 0;
@@ -231,7 +233,7 @@ tr:hover {
     background-color: #eef2f7; /* Satır üzerine gelince vurgu */
 }
 
-/* --- AYT Online Test Stilleri --- */
+/* --- AYT Online Test Genel Stilleri --- */
 
 #ayt-start-screen {
     text-align: center;
@@ -243,10 +245,7 @@ tr:hover {
     font-size: 1.1em;
 }
 
-#ayt-test-container {
-    /* Ana test konteyneri */
-}
-
+/* Aşağıdaki stiller hem modal içi hem de eski yapı için genel */
 .ayt-progress-indicator {
     text-align: right;
     margin-bottom: 15px;
@@ -256,7 +255,7 @@ tr:hover {
 
 .ayt-question-card {
     background-color: #fdfefe;
-    border: 1px solid #e5e8eb;
+    /* border: 1px solid #e5e8eb; Modal içinde kaldırıldı */
     padding: 25px;
     margin-bottom: 20px;
     border-radius: 8px;
@@ -270,20 +269,22 @@ tr:hover {
     line-height: 1.6;
 }
 
+/* Seçenek Stilleri (Yuvarlak sorunu çözümü dahil) */
 .ayt-options-area .option-item {
     margin-bottom: 10px;
+    position: relative; /* Konteyneri göreceli yap */
 }
 
-/* Yeni, daha basit seçenek stili */
 .ayt-options-area label {
     display: block; /* Label tüm satırı kapsasın */
     padding: 10px 15px 10px 40px; /* Radio için solda yer */
     border: 1px solid #ddd;
     border-radius: 5px;
     cursor: pointer;
-    position: relative;
+    /* position: relative; KALDIRILDI */
     transition: background-color 0.2s ease;
     line-height: 1.5; /* Dikey hizalama için */
+    min-height: 1.2em; /* İçeriksiz label'da radyo butonunun taşmasını engellemek için */
 }
 
 .ayt-options-area label:hover {
@@ -307,6 +308,7 @@ tr:hover {
     border-color: #3498db;
     font-weight: 500; /* Çok kalın olmasın */
 }
+/* Seçenek Stilleri Sonu */
 
 /* Navigasyon Butonları */
 .ayt-navigation-controls {
@@ -333,7 +335,7 @@ tr:hover {
     background-color: #27ae60;
 }
 
-/* Sonuç Ekranı */
+/* Sonuç Ekranı (Ana Sayfada) */
 .ayt-results-summary {
     padding: 25px;
     background-color: #f8f9fa;
@@ -359,52 +361,249 @@ tr:hover {
     border-top: 1px dashed #ccc;
     padding-top: 20px;
 }
-
-#ayt-results-details .result-item {
-    margin-bottom: 15px;
-    padding: 10px;
-    border-radius: 5px;
+/* Sonuçlar Başlığı */
+#ayt-results-details h4 {
+    margin-top: 0; /* Üstteki çizgiden sonra boşluk olmasın */
+    margin-bottom: 20px; /* Başlıktan sonra boşluk */
+    color: #1a5276;
+    font-size: 1.2em;
+    text-align: center; /* Başlığı ortala */
 }
 
+
+/* --- GÜNCELLENMİŞ SONUÇ ÖĞESİ STİLLERİ --- */
+#ayt-results-details .result-item {
+    margin-bottom: 20px; /* Öğeler arası boşluk artırıldı */
+    padding: 15px 20px; /* İçeriğe biraz daha boşluk */
+    border-radius: 8px; /* Daha yuvarlak köşeler */
+    border-left: 5px solid transparent; /* Kenarlık kalınlığı artırıldı */
+    background-color: #f9f9f9; /* Hafif gri arka plan */
+}
+
+/* Duruma Göre Kenarlık ve Arka Plan Renkleri */
+#ayt-results-details .result-item.correct-answer {
+    background-color: #e8f8f5; /* Açık yeşil arka plan */
+    border-left-color: #2ecc71; /* Yeşil kenarlık */
+}
 #ayt-results-details .result-item.incorrect-answer {
     background-color: #fdedec;
-    border-left: 4px solid #e74c3c;
+    border-left-color: #e74c3c; /* Kırmızı kenarlık */
+}
+#ayt-results-details .result-item.empty-answer {
+    background-color: #fcf3cf; /* Açık sarı */
+    border-left-color: #f39c12; /* Turuncu kenarlık */
+}
+#ayt-results-details .result-item.error-data {
+     background-color: #f5f5f5;
+     border-left-color: #cccccc;
+     color: #777;
 }
 
-#ayt-results-details .result-item strong {
+/* Soru Numarası ve Metni */
+#ayt-results-details .result-item strong:first-child { /* Sadece ilk strong (Soru X:) */
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 10px; /* Soru metninden önce boşluk */
+    color: #1a5276; /* Başlık rengiyle uyumlu */
+    font-size: 1.05em;
 }
+
+/* Kullanıcı Cevabı Stilleri */
 #ayt-results-details .result-item .user-choice {
-    color: #c0392b; /* Kullanıcının yanlış cevabı */
+    margin-top: 8px;
+    margin-bottom: 5px; /* Doğru cevaptan önce küçük boşluk */
+    font-weight: 500;
+    padding: 6px 10px; /* İç boşluk */
+    border-radius: 4px;
+    display: inline-block; /* Sadece içeriği kadar yer kaplasın */
+    border: 1px solid transparent; /* Kenarlık için yer ayır */
 }
+#ayt-results-details .result-item .user-choice strong { /* "Sizin Cevabınız:" kısmı */
+     margin-right: 5px;
+     font-weight: bold;
+}
+
+#ayt-results-details .result-item .user-choice.correct {
+     color: #1e8449; /* Koyu yeşil */
+     background-color: rgba(46, 204, 113, 0.1);
+     border-color: rgba(46, 204, 113, 0.3);
+}
+#ayt-results-details .result-item .user-choice.incorrect {
+     color: #c0392b; /* Kırmızı */
+     background-color: rgba(231, 76, 60, 0.1);
+     border-color: rgba(231, 76, 60, 0.3);
+}
+#ayt-results-details .result-item .user-choice.empty {
+     color: #b38600; /* Koyu sarı/turuncu */
+     background-color: rgba(243, 156, 18, 0.1);
+     border-color: rgba(243, 156, 18, 0.3);
+     font-style: italic;
+}
+
+/* Doğru Cevap Stili (Yanlış/Boş durumunda gösterilir) */
 #ayt-results-details .result-item .correct-choice {
-     color: #27ae60; /* Doğru cevap */
+     color: #27ae60; /* Yeşil */
+     margin-top: 8px;
+     margin-bottom: 10px; /* Açıklamadan önce boşluk */
+     font-weight: 500;
+     padding: 6px 10px;
+     border-radius: 4px;
+     background-color: rgba(39, 174, 96, 0.08);
+     border: 1px solid rgba(39, 174, 96, 0.2);
+     display: block; /* Tam satır kaplasın */
 }
+#ayt-results-details .result-item .correct-choice strong { /* "Doğru Cevap:" kısmı */
+     color: inherit;
+     margin-right: 5px;
+     font-weight: bold;
+}
+
+/* Açıklama Stili */
 #ayt-results-details .result-item .explanation {
     font-size: 0.9em;
     color: #555;
-    margin-top: 8px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dotted #bbb; /* Ayraç biraz daha belirgin */
+    line-height: 1.5;
 }
+#ayt-results-details .result-item .explanation strong { /* "Açıklama:" kısmı */
+     color: #333;
+     font-weight: bold;
+     margin-right: 5px;
+}
+/* --- SONUÇ ÖĞESİ STİLLERİ SONU --- */
+
 
 #btn-restart-test {
-     margin-top: 20px;
+     margin-top: 25px; /* Biraz daha boşluk */
      background-color: #f39c12; /* Tekrar Dene butonu */
+     padding: 12px 28px; /* Biraz daha büyük */
 }
 #btn-restart-test:hover:not(:disabled) {
       background-color: #e67e22;
 }
 
+/* --- AYT Test Modalı Stilleri --- */
+
+#ayt-test-modal-overlay {
+    position: fixed; /* Sayfa kaysa bile yerinde kalır */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Yarı saydam siyah arka plan */
+    display: flex; /* İçeriği ortalamak için her zaman flex */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Diğer her şeyin üzerinde */
+    opacity: 0; /* Başlangıçta görünmez */
+    visibility: hidden; /* Başlangıçta erişilemez */
+    transition: opacity 0.3s ease, visibility 0.3s ease; /* Yumuşak geçiş */
+}
+
+#ayt-test-modal-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+
+#ayt-test-modal-content {
+    background-color: #ffffff;
+    padding: 30px 40px; /* İç boşluklar */
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    max-width: 90%; /* Ekran genişliğinin %90'ını geçmesin */
+    width: 700px; /* Sabit bir genişlik, isteğe bağlı */
+    max-height: 90vh; /* Ekran yüksekliğinin %90'ını geçmesin */
+    overflow-y: auto; /* İçerik sığmazsa dikey scrollbar çıksın */
+    position: relative; /* Kapatma butonu için */
+    transform: scale(0.95); /* Başlangıçta biraz küçük */
+    transition: transform 0.3s ease; /* Yumuşak büyüme efekti */
+}
+
+#ayt-test-modal-overlay.visible #ayt-test-modal-content {
+     transform: scale(1); /* Görünür olduğunda normal boyuta gelsin */
+}
+
+
+#ayt-test-modal-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 2.5em; /* Çarpı işareti boyutu */
+    color: #888;
+    cursor: pointer;
+    line-height: 1; /* Dikey hizalamayı iyileştirir */
+    padding: 0;
+    transition: color 0.2s ease;
+}
+
+#ayt-test-modal-close-btn:hover {
+    color: #333;
+}
+
+#ayt-test-modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    text-align: center;
+    color: #1a5276;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+}
+
+/* Modal içindeki elementlerin stillerini biraz ayarlayalım */
+#ayt-test-modal-content .ayt-progress-indicator {
+    margin-bottom: 20px; /* Biraz daha boşluk */
+}
+
+#ayt-test-modal-content .ayt-question-card {
+    border: none; /* Modal içinde ekstra kenarlığa gerek yok */
+    box-shadow: none; /* Modal içinde ekstra gölgeye gerek yok */
+    padding: 15px 0; /* Sadece dikey padding */
+    margin-bottom: 15px;
+    background-color: transparent; /* Modal arka planı yeterli */
+}
+
+#ayt-test-modal-content .ayt-navigation-controls {
+     margin-top: 20px;
+     padding-top: 20px;
+     border-top: 1px solid #e0e0e0; /* Modal içinde daha belirgin ayraç */
+}
+
 /* Responsive için küçük ek düzeltme */
 @media (max-width: 768px) {
-    .ayt-navigation-controls {
+    .ayt-navigation-controls { /* Bu hem modal içi hem dışı için geçerli olabilir */
         flex-direction: column-reverse; /* Butonlar alt alta, Sonraki/Bitir üstte */
         gap: 10px;
     }
      .ayt-navigation-controls button {
         width: 100%; /* Tam genişlik */
     }
+     /* Modal için özel responsive ayarlar */
+    #ayt-test-modal-content {
+        width: 95%; /* Mobil için daha geniş */
+        padding: 20px 25px;
+        max-height: 85vh;
+    }
+     #ayt-test-modal-content h2 {
+        font-size: 1.4em;
+     }
+     #ayt-test-modal-close-btn {
+        font-size: 2em;
+        top: 8px;
+        right: 10px;
+     }
+     /* Sonuçlar responsive */
+     #ayt-results-details .result-item {
+        padding: 12px 15px;
+     }
+     #ayt-results-details h4 {
+        font-size: 1.1em;
+     }
 }
+
 
 /* Footer */
 footer {
@@ -418,7 +617,7 @@ footer {
 }
 
 
-/* Responsive Tasarım */
+/* Responsive Tasarım (Genel) */
 @media (max-width: 768px) {
     header h1 {
         font-size: 1.6em;
@@ -442,6 +641,9 @@ footer {
         padding: 8px 14px;
         font-size: 0.9em;
     }
+    .section {
+        padding: 20px; /* Mobil için daha az padding */
+    }
     .section-title {
         font-size: 1.4em;
     }
@@ -454,10 +656,12 @@ footer {
     th, td {
         padding: 8px 10px;
     }
-    .ayt-question .options label {
-        padding-left: 30px; /* Radio butonu için biraz daha az yer */
+    .ayt-options-area label { /* Bu da modal içini etkiler */
+        padding-left: 35px; /* Radio butonu için biraz daha az yer */
     }
-    .ayt-question .options input[type="radio"] {
-        left: 8px;
+    .ayt-options-area input[type="radio"] { /* Bu da modal içini etkiler */
+        left: 10px;
     }
+
 }
+/* --- END OF FILE style.css --- */
