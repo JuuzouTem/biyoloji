@@ -23,6 +23,7 @@ let totalQuestions = 0; // Toplam soru sayısı
 let aytStartScreen, aytTestContainer, aytProgress, aytQuestionText, aytOptionsArea;
 let aytNavigation, btnPrevQuestion, btnNextQuestion, btnFinishTest;
 let aytResultsSummary, aytFinalScore, aytResultsDetails, btnRestartTest, btnStartTest;
+let aytModalOverlay, aytModalContent, aytModalCloseBtn; // Modal elementleri
 
 
 // --- AYT Soruları Verisi (AYT.txt'den Alındı ve Açıklamalar Eklendi) ---
@@ -284,7 +285,7 @@ function init() {
     } // modelContainer kontrolünün sonu
 
 
-    // YENİ: AYT Test elementlerini bul ve doğrula
+    // AYT Test elementlerini bul ve doğrula
     if (!initializeAYTElements()) {
          // Eğer elementler yüklenemezse veya veri yoksa, UI listener'ları kurmanın anlamı yok.
          console.error("AYT Test başlatılamadı. UI listener'lar kurulmayacak.");
@@ -295,8 +296,6 @@ function init() {
     // 7. UI Olaylarını Ayarlama (Three.js'ten bağımsız çalışabilir)
     setupUIEventListeners(); // Elementler bulunduktan SONRA çağır
 
-    // 11. AYT Sorularını Oluştur -> ARTIK GEREKLİ DEĞİL, KALDIRILDI
-    // generateAYTQuestions(); // BU SATIR SİLİNDİ
 }
 
 
@@ -623,23 +622,33 @@ function playHeartbeat() {
 
 function initializeAYTElements() {
     aytStartScreen = document.getElementById('ayt-start-screen');
-    aytTestContainer = document.getElementById('ayt-test-container');
-    aytProgress = document.getElementById('ayt-progress');
-    aytQuestionText = document.getElementById('ayt-question-text');
-    aytOptionsArea = document.getElementById('ayt-options-area');
-    aytNavigation = document.getElementById('ayt-navigation');
-    btnPrevQuestion = document.getElementById('btn-prev-question');
-    btnNextQuestion = document.getElementById('btn-next-question');
-    btnFinishTest = document.getElementById('btn-finish-test');
-    aytResultsSummary = document.getElementById('ayt-results-summary');
-    aytFinalScore = document.getElementById('ayt-final-score');
-    aytResultsDetails = document.getElementById('ayt-results-details');
-    btnRestartTest = document.getElementById('btn-restart-test');
-    btnStartTest = document.getElementById('btn-start-test');
+    // aytTestContainer = document.getElementById('ayt-test-container'); // Artık doğrudan kullanılmıyor
+    aytProgress = document.getElementById('ayt-progress'); // Modal içinde
+    aytQuestionText = document.getElementById('ayt-question-text'); // Modal içinde
+    aytOptionsArea = document.getElementById('ayt-options-area'); // Modal içinde
+    aytNavigation = document.getElementById('ayt-navigation'); // Modal içinde
+    btnPrevQuestion = document.getElementById('btn-prev-question'); // Modal içinde
+    btnNextQuestion = document.getElementById('btn-next-question'); // Modal içinde
+    btnFinishTest = document.getElementById('btn-finish-test'); // Modal içinde
+    aytResultsSummary = document.getElementById('ayt-results-summary'); // Ana sayfada
+    aytFinalScore = document.getElementById('ayt-final-score'); // Ana sayfada
+    aytResultsDetails = document.getElementById('ayt-results-details'); // Ana sayfada
+    btnRestartTest = document.getElementById('btn-restart-test'); // Ana sayfada
+    btnStartTest = document.getElementById('btn-start-test'); // Ana sayfada
 
-    // Elementlerin varlığını temel düzeyde kontrol et
-    if (!aytStartScreen || !aytTestContainer || !aytResultsSummary || !btnStartTest) {
-        console.error("AYT Test için gerekli temel HTML elementlerinden bazıları bulunamadı!");
+    // Modal Elementleri
+    aytModalOverlay = document.getElementById('ayt-test-modal-overlay');
+    aytModalContent = document.getElementById('ayt-test-modal-content'); // Şu an doğrudan kullanılmıyor ama referans iyi
+    aytModalCloseBtn = document.getElementById('ayt-test-modal-close-btn');
+
+
+    // Elementlerin varlığını temel düzeyde kontrol et (Modal ve içindekiler dahil)
+    if (!aytStartScreen || !aytResultsSummary || !btnStartTest || !aytModalOverlay || !aytModalCloseBtn ||
+        !aytProgress || !aytQuestionText || !aytOptionsArea || !aytNavigation ||
+        !btnPrevQuestion || !btnNextQuestion || !btnFinishTest || !btnRestartTest || !aytFinalScore || !aytResultsDetails ) {
+        console.error("AYT Test için gerekli temel HTML elementlerinden bazıları (modal dahil) bulunamadı!");
+        // Kullanıcıya hata mesajı göstermek için başlangıç ekranını kullanabiliriz
+        if (aytStartScreen) aytStartScreen.innerHTML = '<p style="color: red;">Test arayüzü yüklenirken bir sorun oluştu. Lütfen sayfayı yenileyin.</p>';
         return false; // Başlatma başarısız
     }
 
@@ -663,23 +672,29 @@ function startAYTTest() {
     currentQuestionIndex = 0;
     userAnswers = new Array(totalQuestions).fill(null); // Cevapları sıfırla
 
-    if (!aytTestContainer || !aytStartScreen || !aytResultsSummary) {
-        console.error("Gerekli test elementleri bulunamadı.");
-        return;
+    // Element kontrolü (initialize'da yapıldı ama tekrar kontrol etmek zarar vermez)
+    if (!aytModalOverlay || !aytProgress || !aytQuestionText || !aytOptionsArea || !aytNavigation || !aytStartScreen || !aytResultsSummary) {
+         console.error("Test başlatılamadı: Gerekli modal veya test elementleri bulunamadı.");
+         return;
     }
 
+    // Başlangıç ekranını gizle, sonuçları gizle
     aytStartScreen.style.display = 'none';
     aytResultsSummary.style.display = 'none';
-    aytTestContainer.style.display = 'block';
-    if(aytNavigation) aytNavigation.style.display = 'flex'; // Navigasyon görünür olsun
 
+    // Modalı görünür yap (CSS'deki class ile)
+    aytModalOverlay.classList.add('visible');
+
+    // İlk soruyu göster
     displayQuestion(currentQuestionIndex);
 }
 
 function displayQuestion(index) {
     if (index < 0 || index >= totalQuestions || !aytQuestionsData[index]) {
         console.error("Geçersiz soru index'i veya soru verisi eksik:", index);
-        // Kullanıcıya bir mesaj gösterilebilir veya test sonlandırılabilir
+        // Hata durumunda kullanıcıya bilgi verilebilir, örneğin modal içinde
+        if(aytQuestionText) aytQuestionText.innerHTML = `<p style="color:red;">Soru ${index + 1} yüklenirken bir hata oluştu.</p>`;
+        if(aytOptionsArea) aytOptionsArea.innerHTML = '';
         return;
     }
     const qData = aytQuestionsData[index];
@@ -687,22 +702,19 @@ function displayQuestion(index) {
      // Veri doğrulama (her soru için)
     if (!qData || typeof qData.question !== 'string' || !Array.isArray(qData.options)) {
          console.error(`Soru ${index + 1} hatalı formatta, atlanıyor:`, qData);
-         // Hatalı soruyu atlayıp bir sonrakine geçmeyi deneyebiliriz veya testi durdurabiliriz.
-         // Şimdilik sadece loglayalım ve devam edelim (kullanıcı fark etmeyebilir)
-         // VEYA: Kullanıcıya hata gösterip testi durdur
-         // if(aytQuestionText) aytQuestionText.innerHTML = `<p style="color:red;">Soru ${index + 1} yüklenirken hata oluştu.</p>`;
-         // if(aytOptionsArea) aytOptionsArea.innerHTML = '';
-         // return;
+         if(aytQuestionText) aytQuestionText.innerHTML = `<p style="color:red;">Soru ${index + 1} formatı hatalı.</p>`;
+         if(aytOptionsArea) aytOptionsArea.innerHTML = '';
+         return;
     }
 
 
-    // İlerleme göstergesini güncelle
+    // İlerleme göstergesini güncelle (Modal içinde)
     if (aytProgress) aytProgress.textContent = `Soru ${index + 1} / ${totalQuestions}`;
 
-    // Soru metnini güncelle
+    // Soru metnini güncelle (Modal içinde)
     if (aytQuestionText) aytQuestionText.innerHTML = qData.question.replace(/\n/g, '<br>'); // Satır sonlarını <br>'ye çevir
 
-    // Seçenek alanını temizle ve doldur
+    // Seçenek alanını temizle ve doldur (Modal içinde)
     if (aytOptionsArea) {
         aytOptionsArea.innerHTML = ''; // Önceki seçenekleri temizle
         const optionLetters = ['A', 'B', 'C', 'D', 'E'];
@@ -712,31 +724,19 @@ function displayQuestion(index) {
                  option = `Hatalı Seçenek ${optIndex + 1}`; // Hatalı seçeneği göster
              }
             const inputId = `q${index}_opt${optIndex}`;
-            // Yeni HTML yapısı style.css ile uyumlu
+            // style.css ile uyumlu HTML yapısı
             const optionHTML = `
                 <div class="option-item">
                     <input type="radio" id="${inputId}" name="question-${index}" value="${optIndex}">
                     <label for="${inputId}">${option}</label>
                 </div>
             `;
-             /* // Alternatif (style.css'deki .option-letter/.option-text için):
-             const optionHTML = `
-                 <div class="option-item">
-                     <input type="radio" id="${inputId}" name="question-${index}" value="${optIndex}">
-                     <label for="${inputId}">
-                         <span class="option-letter">${optionLetters[optIndex]})</span>
-                         <span class="option-text">${option}</span>
-                     </label>
-                 </div>
-             `;
-             */
             aytOptionsArea.insertAdjacentHTML('beforeend', optionHTML);
         });
 
         // Kaydedilmiş cevabı kontrol et ve işaretle
         if (userAnswers[index] !== null && userAnswers[index] !== undefined) {
-            // Değerin number olduğundan emin ol (saveCurrentAnswer'dan int geliyor)
-            const savedValue = userAnswers[index];
+            const savedValue = userAnswers[index]; // Bu bir sayı olmalı
             const savedOptionInput = aytOptionsArea.querySelector(`input[value="${savedValue}"]`);
             if (savedOptionInput) {
                 savedOptionInput.checked = true;
@@ -746,17 +746,23 @@ function displayQuestion(index) {
         }
     }
 
-    // Navigasyon butonlarının görünürlüğünü ayarla
+    // Navigasyon butonlarının görünürlüğünü ayarla (Modal içinde)
     if (btnPrevQuestion) btnPrevQuestion.style.display = (index === 0) ? 'none' : 'inline-block';
     if (btnNextQuestion) btnNextQuestion.style.display = (index === totalQuestions - 1) ? 'none' : 'inline-block';
     if (btnFinishTest) btnFinishTest.style.display = (index === totalQuestions - 1) ? 'inline-block' : 'none';
 }
 
 function saveCurrentAnswer() {
+    // Modal içindeki seçenekleri kontrol et
     const selectedOptionInput = aytOptionsArea ? aytOptionsArea.querySelector(`input[name="question-${currentQuestionIndex}"]:checked`) : null;
     if (selectedOptionInput) {
         // inputun value'su string gelir, parseInt ile sayıya çeviriyoruz
         userAnswers[currentQuestionIndex] = parseInt(selectedOptionInput.value, 10);
+         // Eğer parseInt NaN dönerse (örn. value="abc" gibi geçersiz bir değerse) null yapalım
+         if (isNaN(userAnswers[currentQuestionIndex])) {
+             console.error(`Soru ${currentQuestionIndex+1} için geçersiz seçenek değeri: ${selectedOptionInput.value}`);
+             userAnswers[currentQuestionIndex] = null;
+         }
     } else {
         // Eğer seçim yapılmadıysa null olarak kaydediyoruz
         userAnswers[currentQuestionIndex] = null;
@@ -786,73 +792,114 @@ function handleFinishTest() {
     showResults();
 }
 
+// --- GÜNCELLENMİŞ showResults Fonksiyonu ---
 function showResults() {
-    if (!aytTestContainer || !aytResultsSummary || !aytFinalScore || !aytResultsDetails) {
-        console.error("Sonuçları göstermek için gerekli elementler bulunamadı.");
+    // Önce Modalı Kapat
+    if (aytModalOverlay) {
+         aytModalOverlay.classList.remove('visible');
+         // Modal içeriğini temizle
+         if (aytQuestionText) aytQuestionText.innerHTML = '';
+         if (aytOptionsArea) aytOptionsArea.innerHTML = '';
+         if (aytProgress) aytProgress.textContent = '';
+    }
+
+    // Gerekli ana sayfa elementlerini kontrol et
+    if (!aytResultsSummary || !aytFinalScore || !aytResultsDetails || !aytStartScreen) {
+        console.error("Sonuçları göstermek için gerekli ana sayfa elementleri bulunamadı.");
+        if (aytStartScreen) aytStartScreen.style.display = 'block';
         return;
     }
 
-    if (aytTestContainer) aytTestContainer.style.display = 'none';
-    if (aytNavigation) aytNavigation.style.display = 'none'; // Navigasyonu da gizle
-    if (aytResultsSummary) aytResultsSummary.style.display = 'block';
+    // Sonuç özetini ana sayfada göster
+    aytResultsSummary.style.display = 'block';
+    if (aytStartScreen) aytStartScreen.style.display = 'none';
 
     let score = 0;
-    let resultsHTML = ''; // Başlangıçta boş
-    let hasIncorrect = false; // Yanlış var mı kontrolü
+    let resultsHTML = ''; // Tüm sorular için HTML'i burada biriktireceğiz
+    const optionLetters = ['A', 'B', 'C', 'D', 'E'];
 
+    console.log("--- SKOR ve SONUÇ DETAYLARI OLUŞTURULUYOR ---");
     aytQuestionsData.forEach((qData, index) => {
         const correctAnswerIndex = qData.correctOptionIndex;
-        const userAnswerIndex = userAnswers[index]; // Bu null veya bir sayı olabilir
+        const userAnswerIndex = userAnswers[index];
+        const questionText = qData.question.replace(/\n/g, '<br>');
+        const explanationText = qData.explanation ? qData.explanation.replace(/\n/g, '<br>') : "Açıklama bulunmuyor.";
+        const correctAnswerText = qData.options[correctAnswerIndex];
+        const correctAnswerLetter = optionLetters[correctAnswerIndex];
 
-        // Index doğrulamaları
-         if (typeof correctAnswerIndex !== 'number' || correctAnswerIndex < 0 || !qData.options || correctAnswerIndex >= qData.options.length) {
-            console.warn(`Soru ${index + 1} için geçersiz doğru cevap index'i veya seçenek verisi: ${correctAnswerIndex}`);
-            // Bu sorunun değerlendirmesini atla veya hata mesajı ekle
-             resultsHTML += `<div class="result-item" style="border-left: 4px solid orange;"><strong>Soru ${index + 1}:</strong> Değerlendirilemedi (hatalı veri).</div>`;
-             hasIncorrect = true; // Hatalı veri de bir tür "yanlış" sayılabilir
+        // Index doğrulamaları (Önemli)
+        if (typeof correctAnswerIndex !== 'number' || correctAnswerIndex < 0 || !qData.options || correctAnswerIndex >= qData.options.length) {
+            console.warn(`Soru ${index + 1} için geçersiz doğru cevap index'i (${correctAnswerIndex}) veya seçenek verisi.`);
+            resultsHTML += `<div class="result-item error-data"><strong>Soru ${index + 1}:</strong> Değerlendirilemedi (hatalı veri).</div>`;
             return; // Sonraki soruya geç
-         }
+        }
+
+        let resultItemClass = '';
+        let userAnswerDisplay = '';
 
         if (userAnswerIndex !== null && userAnswerIndex === correctAnswerIndex) {
+            // --- DOĞRU CEVAP DURUMU ---
             score++;
-        } else { // Yanlış veya boş bırakılanlar
-             hasIncorrect = true; // Yanlış veya boş varsa işaretle
-             const optionLetters = ['A', 'B', 'C', 'D', 'E'];
-             const correctAnswerText = qData.options[correctAnswerIndex];
-             let userAnswerText = "Boş Bırakıldı";
-             let userAnswerLetter = "-";
+            console.log(`Soru ${index + 1}: DOĞRU`);
+            resultItemClass = 'correct-answer';
+            const userAnswerText = qData.options[userAnswerIndex]; // Kullanıcının cevabı (doğru)
+            userAnswerDisplay = `<div class="user-choice correct"><strong>Sizin Cevabınız:</strong> ${optionLetters[userAnswerIndex]}) ${userAnswerText} (Doğru)</div>`;
 
-             if (userAnswerIndex !== null && userAnswerIndex >= 0 && userAnswerIndex < qData.options.length) {
-                 userAnswerText = qData.options[userAnswerIndex];
-                 userAnswerLetter = optionLetters[userAnswerIndex];
-             } else if (userAnswerIndex !== null) {
-                 // Geçersiz index durumu (programlama hatası?)
-                 userAnswerText = `Geçersiz Seçim (${userAnswerIndex})`;
-                 userAnswerLetter = "?";
-             }
+            resultsHTML += `
+                <div class="result-item ${resultItemClass}">
+                    <strong>Soru ${index + 1}:</strong> ${questionText}
+                    ${userAnswerDisplay}
+                    <!-- Doğru cevap zaten verildiği için tekrar belirtmeye gerek yok -->
+                    <div class="explanation"><strong>Açıklama:</strong> ${explanationText}</div>
+                </div>
+            `;
 
-             // Açıklama var mı kontrol et
-             const explanationText = qData.explanation ? qData.explanation.replace(/\n/g, '<br>') : "Açıklama bulunmuyor.";
+        } else {
+            // --- YANLIŞ veya BOŞ CEVAP DURUMU ---
+            let userAnswerText = "Boş Bırakıldı";
+            let userAnswerLetter = "-";
 
-             resultsHTML += `
-                <div class="result-item ${userAnswerIndex === null ? '' : 'incorrect-answer'}">
-                    <strong>Soru ${index + 1}:</strong> ${qData.question.replace(/\n/g, '<br>')}
-                    ${userAnswerIndex !== null ? `<div class="user-choice">Sizin Cevabınız: ${userAnswerLetter}) ${userAnswerText}</div>` : '<div class="user-choice">Cevap Vermediniz</div>'}
-                    <div class="correct-choice">Doğru Cevap: ${optionLetters[correctAnswerIndex]}) ${correctAnswerText}</div>
+            if (userAnswerIndex !== null) { // Yanlış cevaplandı
+                console.log(`Soru ${index + 1}: YANLIŞ`);
+                resultItemClass = 'incorrect-answer';
+                if (userAnswerIndex >= 0 && userAnswerIndex < qData.options.length) {
+                    userAnswerText = qData.options[userAnswerIndex];
+                    userAnswerLetter = optionLetters[userAnswerIndex];
+                    userAnswerDisplay = `<div class="user-choice incorrect"><strong>Sizin Cevabınız:</strong> ${userAnswerLetter}) ${userAnswerText} (Yanlış)</div>`;
+                } else {
+                    // Geçersiz index durumu (çok nadir olmalı)
+                     console.error(`  -> HATA: Soru ${index + 1} için geçersiz kullanıcı cevap indexi: ${userAnswerIndex}`);
+                     userAnswerDisplay = `<div class="user-choice incorrect"><strong>Sizin Cevabınız:</strong> Geçersiz Seçim (${userAnswerIndex})</div>`;
+                }
+            } else { // Boş bırakıldı
+                console.log(`Soru ${index + 1}: BOŞ`);
+                resultItemClass = 'empty-answer';
+                userAnswerDisplay = '<div class="user-choice empty"><strong>Cevap Vermediniz</strong></div>';
+            }
+
+            resultsHTML += `
+                <div class="result-item ${resultItemClass}">
+                    <strong>Soru ${index + 1}:</strong> ${questionText}
+                    ${userAnswerDisplay}
+                    <div class="correct-choice"><strong>Doğru Cevap:</strong> ${correctAnswerLetter}) ${correctAnswerText}</div>
                     <div class="explanation"><strong>Açıklama:</strong> ${explanationText}</div>
                 </div>
             `;
         }
     });
+    console.log("--- SKOR ve SONUÇ DETAYLARI OLUŞTURMA BİTTİ ---");
 
+    // Final skoru göster
     aytFinalScore.innerHTML = `Sonuç: ${totalQuestions} soruda ${score} doğru yaptınız.`;
 
-    // Yanlış/boş yoksa özel mesaj, varsa detayları göster
-    if (!hasIncorrect) {
-        aytResultsDetails.innerHTML = '<p style="color: green; text-align: center; font-weight: bold; padding: 15px 0;">Tebrikler! Tüm soruları doğru cevapladınız.</p>';
-    } else {
-         // Detayları göstermeden önce başlığı ekle
-         aytResultsDetails.innerHTML = `<h4>Yanlış / Boş Bırakılanlar ve Açıklamaları:</h4>${resultsHTML}`;
+    // Detayları göster (Başlık güncellendi)
+    aytResultsDetails.innerHTML = `<h4>Doğrularınız / Yanlışlarınız / Boş Bırakılanlar ve Açıklamaları:</h4>${resultsHTML}`;
+
+    // İsteğe bağlı: Hepsi doğruysa yine de tebrik mesajı eklenebilir
+    if (score === totalQuestions && totalQuestions > 0) {
+         const congratsMessage = '<p style="color: green; text-align: center; font-weight: bold; padding: 15px 0; margin-top: -15px; border-bottom: 1px dashed #ccc; margin-bottom: 15px;">Tebrikler! Tüm soruları doğru cevapladınız.</p>';
+         // Başlığın hemen altına ekleyelim
+         aytResultsDetails.insertAdjacentHTML('afterbegin', congratsMessage);
     }
 }
 // --- AYT Online Test Fonksiyonları Sonu ---
@@ -917,12 +964,44 @@ function setupUIEventListeners() {
     if (btnPlayHeartbeat) btnPlayHeartbeat.addEventListener('click', playHeartbeat);
 
 
-    // --- 3. YENİ AYT Online Test Butonları ---
-    // Element referansları initializeAYTElements içinde global değişkenlere atandı.
-    if (btnStartTest) {
-        btnStartTest.addEventListener('click', startAYTTest);
-     } else { console.warn("Start Test butonu bulunamadı ('btn-start-test')");}
+    // --- 3. AYT Online Test Butonları ve Modal Kontrolleri ---
 
+    // Test Başlatma Butonu (Ana Sayfada)
+    if (btnStartTest && aytModalOverlay) {
+        btnStartTest.addEventListener('click', () => {
+            console.log("Test Başlat butonuna tıklandı.");
+            startAYTTest(); // Bu fonksiyon modalı açar ve testi başlatır
+        });
+    } else { console.warn("Start Test butonu ('btn-start-test') veya Modal Overlay ('ayt-test-modal-overlay') bulunamadı"); }
+
+    // Modal Kapatma Butonu (Modal İçinde)
+    if (aytModalCloseBtn && aytModalOverlay) {
+        aytModalCloseBtn.addEventListener('click', () => {
+            aytModalOverlay.classList.remove('visible');
+            // Testi kapatınca başlangıç ekranını tekrar göster (eğer sonuçlar gösterilmiyorsa)
+            if (aytStartScreen && (!aytResultsSummary || aytResultsSummary.style.display === 'none')) {
+                 aytStartScreen.style.display = 'block';
+            }
+            console.log("Modal kapatma butonuna tıklandı.");
+        });
+    } else { console.warn("Modal Kapatma butonu ('ayt-test-modal-close-btn') veya Modal Overlay ('ayt-test-modal-overlay') bulunamadı"); }
+
+     // Modal Dışına Tıklayınca Kapatma
+     if (aytModalOverlay) {
+        aytModalOverlay.addEventListener('click', (event) => {
+            // Sadece overlay'in kendisine (arka plana) tıklandıysa kapat
+            if (event.target === aytModalOverlay) {
+                 aytModalOverlay.classList.remove('visible');
+                 // Testi kapatınca başlangıç ekranını tekrar göster (eğer sonuçlar gösterilmiyorsa)
+                 if (aytStartScreen && (!aytResultsSummary || aytResultsSummary.style.display === 'none')) {
+                    aytStartScreen.style.display = 'block';
+                 }
+                 console.log("Modal dışına tıklandı, modal kapatıldı.");
+            }
+        });
+     }
+
+    // Test Navigasyon Butonları (Modal İçinde)
      if (btnNextQuestion) {
          btnNextQuestion.addEventListener('click', handleNextQuestion);
      } else { console.warn("Next Question butonu bulunamadı ('btn-next-question')");}
@@ -932,22 +1011,21 @@ function setupUIEventListeners() {
      } else { console.warn("Previous Question butonu bulunamadı ('btn-prev-question')");}
 
      if (btnFinishTest) {
-         btnFinishTest.addEventListener('click', handleFinishTest);
+         btnFinishTest.addEventListener('click', handleFinishTest); // Bu fonksiyon showResults'u çağırır, o da modalı kapatır.
      } else { console.warn("Finish Test butonu bulunamadı ('btn-finish-test')");}
 
-     if (btnRestartTest) {
-          // Restart butonu, sonuçları gizler, test kontainerini gizler ve başlangıç ekranını gösterir.
+     // Tekrar Dene Butonu (Sonuç Ekranında - Ana Sayfada)
+     if (btnRestartTest && aytResultsSummary && aytStartScreen && aytModalOverlay) {
          btnRestartTest.addEventListener('click', () => {
-             if (aytResultsSummary) aytResultsSummary.style.display = 'none';
-             if (aytTestContainer) aytTestContainer.style.display = 'none';
-             if (aytNavigation) aytNavigation.style.display = 'none'; // Navigasyonu da gizle
-             if (aytStartScreen) aytStartScreen.style.display = 'block';
-             // İsteğe bağlı: Test state'ini tamamen sıfırla (gerçi startAYTTest bunu yapıyor)
+             aytResultsSummary.style.display = 'none'; // Sonuçları gizle
+             aytStartScreen.style.display = 'block'; // Başlangıç ekranını göster
+             aytModalOverlay.classList.remove('visible'); // Modalın kesin kapalı olduğundan emin ol (gerekirse)
+             // Test state'ini sıfırlama (startAYTTest içinde zaten yapılıyor)
              // currentQuestionIndex = 0;
              // userAnswers = [];
              console.log("Test yeniden başlatılmaya hazır.");
          });
-     } else { console.warn("Restart Test butonu bulunamadı ('btn-restart-test')");}
+     } else { console.warn("Restart Test butonu ('btn-restart-test'), Sonuçlar ('ayt-results-summary'), Başlangıç Ekranı ('ayt-start-screen') veya Modal ('ayt-test-modal-overlay') bulunamadı");}
 
     // --- Bitiş: UI Event Listeners ---
 }
