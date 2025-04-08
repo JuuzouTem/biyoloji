@@ -310,31 +310,45 @@
             <!-- Diğer tab içerikleri buraya eklenebilir -->
         </div>
 
-<!-- AYT Online Test Bölümü -->
+        <!-- AYT Online Test Bölümü -->
         <div class="section">
             <h2 class="section-title">AYT Tipi Online Test</h2>
 
-            <!-- Başlangıç Ekranı -->
+             <!-- Test Modalı (Başlangıçta Gizli - CSS ile) -->
+             <!-- *** GÜNCELLENDİ: style="display: none;" kaldırıldı *** -->
+            <div id="ayt-test-modal-overlay">
+                <div id="ayt-test-modal-content">
+                    <button id="ayt-test-modal-close-btn" title="Testi Kapat">×</button>
+                    <h2>AYT Dolaşım Sistemi Testi</h2>
+                    <!-- Test İçeriği -->
+                    <div id="ayt-progress" class="ayt-progress-indicator">Soru 1 / X</div>
+                    <div id="ayt-question-card" class="ayt-question-card">
+                        <div id="ayt-question-text" class="ayt-question-text">Soru metni buraya gelecek...</div>
+                        <div id="ayt-options-area" class="ayt-options-area">
+                            <!-- Seçenekler buraya JS ile eklenecek -->
+                             <!-- ÖNEMLİ: Burada elle eklenmiş radio butonu olmamalı -->
+                        </div>
+                    </div>
+                    <div id="ayt-navigation" class="ayt-navigation-controls">
+                        <button id="btn-prev-question" style="display: none;">Önceki Soru</button>
+                        <button id="btn-next-question">Sonraki Soru</button>
+                        <button id="btn-finish-test" style="display: none;">Testi Bitir</button>
+                    </div>
+                    <!-- Test İçeriği Sonu -->
+                </div>
+            </div>
+            <!-- Test Modalı Sonu -->
+
+            <!-- Başlangıç Ekranı (Yerinde kalıyor) -->
             <div id="ayt-start-screen">
                 <p>Hazır olduğunuzda testi başlatmak için butona tıklayın.</p>
                 <button id="btn-start-test">Testi Başlat</button>
             </div>
 
-            <!-- Test Arayüzü (Başlangıçta Gizli) -->
+            <!-- Eski Test Konteyneri YORUM SATIRI YAPILDI veya SİLİNEBİLİR
             <div id="ayt-test-container" style="display: none;">
-                <div id="ayt-progress" class="ayt-progress-indicator">Soru 1 / X</div>
-                <div id="ayt-question-card" class="ayt-question-card">
-                    <div id="ayt-question-text" class="ayt-question-text">Soru metni buraya gelecek...</div>
-                    <div id="ayt-options-area" class="ayt-options-area">
-                        <!-- Seçenekler buraya JS ile eklenecek -->
-                    </div>
-                </div>
-                <div id="ayt-navigation" class="ayt-navigation-controls">
-                    <button id="btn-prev-question" style="display: none;">Önceki Soru</button>
-                    <button id="btn-next-question">Sonraki Soru</button>
-                    <button id="btn-finish-test" style="display: none;">Testi Bitir</button>
-                </div>
             </div>
+            -->
 
             <!-- Sonuç Ekranı (Başlangıçta Gizli) -->
             <div id="ayt-results-summary" style="display: none;" class="ayt-results-summary">
@@ -348,8 +362,10 @@
         </div>
         <!-- AYT Online Test Bölümü Sonu -->
 
+    </div> <!-- .container sonu -->
+
     <footer>
-        <p>Bu interaktif proje Behlül tarafından 11. Sınıf Biyoloji dersi için hazırlanmıştır.</p>
+        <p>Bu interaktif proje 11/D öğrencisi Behlül tarafından 11. Sınıf Biyoloji dersi için hazırlanmıştır.</p>
     </footer>
 
     <!-- Kütüphaneler (Önce bunlar yüklenmeli) -->
@@ -361,3 +377,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+<!-- --- END OF FILE index.html --- -->
